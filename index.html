@@ -3,23 +3,33 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Villa San Rafael - Salud & Bienestar</title>
+  <meta name="description" content="Villa San Rafael en El Pomo, Valle del Cauca. Fisioterapia profesional, retiros de bienestar holístico para mujeres y productos botánicos artesanales.">
+  <title>Villa San Rafael - Salud, Descanso & Reconexión</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-  <!-- Encabezado Principal / Hero -->
+  <!-- Header Persuasivo / Hero -->
   <header>
-    <div class="container">
+    <div class="container hero-content">
+      <div class="social-badge" id="hero-social-proof">
+        ★ 4.9 en Google & Experiencias · Más de 150 mujeres y pacientes atendidos
+      </div>
       <h1 id="site-title">Villa San Rafael</h1>
-      <p class="location" id="site-location">Corregimiento El Pomo, a 5 min de Hacienda El Paraíso</p>
-      <p class="welcome-msg" id="hero-welcome">Salud, fisioterapia y bienestar en un entorno rodeado de naturaleza</p>
+      <p class="welcome-msg" id="hero-welcome">Descansa, recupera tu cuerpo y reconecta en medio de la naturaleza.</p>
+      <p class="location" id="site-location">📍 Corregimiento El Pomo, a 5 min de Hacienda El Paraíso</p>
+      
+      <div class="hero-actions">
+        <a href="#experiencias" class="btn btn-hero">Ver Próximas Fechas</a>
+        <button id="btn-open-video" class="btn btn-outline-light" style="display:none;">▶ Ver Video del Lugar</button>
+      </div>
     </div>
   </header>
 
   <!-- Indicador de Carga -->
-  <div id="loading" class="container">
-    <p>Conectando con la naturaleza y cargando experiencias...</p>
+  <div id="loading" class="container text-center">
+    <div class="spinner"></div>
+    <p>Cargando experiencias y bienestar...</p>
   </div>
 
   <main>
@@ -27,7 +37,7 @@
     <section id="experiencias">
       <div class="container">
         <h2 class="section-title">Experiencias & Retiros</h2>
-        <p class="section-subtitle">Jornadas de reconexión, naturaleza, yoga y bienestar integral</p>
+        <p class="section-subtitle">Jornadas de reconexión íntima, yoga suave, río, siembra y aromaterapia</p>
         <div id="experiencias-container" class="grid"></div>
       </div>
     </section>
@@ -36,39 +46,109 @@
     <section id="servicios">
       <div class="container">
         <h2 class="section-title">Salud & Fisioterapia</h2>
-        <p class="section-subtitle">Atención profesional personalizada y acondicionamiento físico</p>
+        <p class="section-subtitle">Atención clínica profesional individualizada y acondicionamiento muscular</p>
         <div id="servicios-container" class="grid"></div>
       </div>
     </section>
 
-    <!-- 3. Catálogo Botánico -->
+    <!-- 3. La Persona Detrás del Cuidado (Especialista) -->
+    <section id="especialista-section">
+      <div class="container">
+        <div id="especialista-container" class="especialista-card"></div>
+      </div>
+    </section>
+
+    <!-- 4. Catálogo Botánico -->
     <section id="productos">
       <div class="container">
         <h2 class="section-title">Línea Botánica Artesanal</h2>
-        <p class="section-subtitle">Despertando Mi Poder — Cuidado consciente para tu cuerpo</p>
+        <p class="section-subtitle">Despertando Mi Poder — Cuidado consciente cultivado en nuestra tierra</p>
         <div id="productos-container" class="grid"></div>
       </div>
     </section>
 
-    <!-- 4. Galería de Recuerdos y Paisaje -->
+    <!-- 5. Prueba Social (Reseñas & Testimonios) -->
+    <section id="testimonios">
+      <div class="container">
+        <h2 class="section-title">Lo que Dicen Nuestras Asistentes y Pacientes</h2>
+        <p class="section-subtitle">Historias reales de reconexión, alivio y cuidado en El Pomo</p>
+        <div id="resenas-container" class="grid-resenas"></div>
+      </div>
+    </section>
+
+    <!-- 6. Galería / Paisaje -->
     <section id="galeria">
       <div class="container">
         <h2 class="section-title">Nuestro Rincón en El Pomo</h2>
         <p class="section-subtitle">Un vistazo al paisaje, la calma y el valle</p>
-        <div id="galeria-container" class="grid"></div>
+        <div id="galeria-container" class="grid-galeria"></div>
+      </div>
+    </section>
+
+    <!-- 7. Cómo Llegar & Ubicación -->
+    <section id="ubicacion-section">
+      <div class="container">
+        <h2 class="section-title">¿Cómo Llegar?</h2>
+        <p class="section-subtitle">Fácil acceso pavimentado hasta la zona, a tan solo 5 minutos de Hacienda El Paraíso</p>
+        <div class="map-wrapper">
+          <iframe id="mapa-iframe" src="" width="100%" height="350" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+          <div class="map-actions text-center">
+            <a id="btn-waze" href="#" target="_blank" rel="noopener" class="btn btn-secondary">Abrir en Google Maps / Waze</a>
+          </div>
+        </div>
       </div>
     </section>
   </main>
 
-  <!-- Botón Flotante de WhatsApp -->
-  <a id="btn-wa-float" class="wa-float" target="_blank" rel="noopener" aria-label="Contactar por WhatsApp">
-    💬
+  <!-- Botón Flotante de WhatsApp Expandido -->
+  <a id="btn-wa-float" class="wa-float-pill" target="_blank" rel="noopener" aria-label="Escríbenos por WhatsApp">
+    <span class="wa-icon">💬</span>
+    <span class="wa-label">¿Hablamos por WhatsApp?</span>
   </a>
 
+  <!-- Modal de Captura de Lead (Reservas y Citas) -->
+  <div id="modal-lead" class="modal-backdrop">
+    <div class="modal-window">
+      <button class="modal-close" id="btn-close-modal">&times;</button>
+      <h3 id="modal-lead-title">Reservar Cupo</h3>
+      <p id="modal-lead-subtitle" class="modal-desc">Déjanos tus datos para asegurar tu cupo antes de que se agote.</p>
+      
+      <form id="lead-form">
+        <input type="hidden" id="form-interes">
+        <div class="form-group">
+          <label for="form-nombre">Nombre completo *</label>
+          <input type="text" id="form-nombre" required placeholder="Ej. Marcela Restrepo">
+        </div>
+        <div class="form-group">
+          <label for="form-telefono">Número de WhatsApp *</label>
+          <input type="tel" id="form-telefono" required placeholder="Ej. 310 123 4567">
+        </div>
+        <div class="form-group">
+          <label for="form-mensaje">Pregunta o nota opcional</label>
+          <textarea id="form-mensaje" rows="2" placeholder="¿Tienes alguna condición física especial o solicitud?"></textarea>
+        </div>
+        <div class="modal-buttons">
+          <button type="submit" class="btn btn-primary btn-block" id="btn-submit-lead">Continuar a WhatsApp</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal de Video Teaser -->
+  <div id="modal-video" class="modal-backdrop">
+    <div class="modal-window modal-video-window">
+      <button class="modal-close" id="btn-close-video">&times;</button>
+      <div class="video-responsive">
+        <iframe id="video-iframe" src="" frameborder="0" allowfullscreen allow="autoplay"></iframe>
+      </div>
+    </div>
+  </div>
+
   <footer>
-    <div class="container">
-      <p>© 2026 Villa San Rafael. Todos los derechos reservados.</p>
-      <p>El Pomo, Valle del Cauca, Colombia</p>
+    <div class="container footer-content">
+      <p class="brand">Villa San Rafael · El Pomo, Valle del Cauca</p>
+      <p class="contact-line">Atención y Reservas directas: <a id="footer-wa-link" href="#" target="_blank" rel="noopener"><strong id="footer-wa-number">(+57) 315 827 2120</strong></a></p>
+      <p class="copy">© 2026 Villa San Rafael. Salud, fisioterapia y retiros conscientes.</p>
     </div>
   </footer>
 
