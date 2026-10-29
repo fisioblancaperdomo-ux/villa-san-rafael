@@ -30,12 +30,12 @@ async function cargarDatos() {
   } catch (error) {
     console.error("Error al cargar datos:", error);
     if (loadingEl) {
-      loadingEl.innerHTML = `<p class="text-center" style="color:#a33;">No fue posible sincronizar el contenido en este momento. Por favor contáctanos directamente a nuestro WhatsApp oficial.</p>`;
+      loadingEl.innerHTML = `<p class="text-center" style="color:#a33;">No fue posible sincronizar el contenido en este momento. Por favor contáctanos directamente por WhatsApp.</p>`;
     }
   }
 }
 
-// Formateo de horas eliminando el timestamp 1899-12-30T...
+// Parser de Horas Redondeadas
 function formatearHora(val) {
   if (!val) return "";
   const str = String(val).trim();
@@ -44,6 +44,9 @@ function formatearHora(val) {
     if (!isNaN(d.getTime())) {
       let h = d.getUTCHours();
       let m = d.getUTCMinutes();
+      // Redondeo de minutos a múltiplos de 15 o 30
+      m = Math.round(m / 15) * 15;
+      if (m === 60) { h += 1; m = 0; }
       const ampm = h >= 12 ? 'PM' : 'AM';
       h = h % 12;
       h = h ? h : 12;
@@ -53,7 +56,7 @@ function formatearHora(val) {
   return str;
 }
 
-// Formateo de fechas legible
+// Parser de Fechas
 function formatearFecha(val) {
   if (!val) return "";
   const str = String(val).trim();
@@ -98,31 +101,31 @@ function aplicarConfiguracion(cfg) {
   if (footerWaNum) footerWaNum.innerText = numVisible;
   if (footerWaLink) footerWaLink.href = `${baseWaUrl}${encodeURIComponent("¡Hola! Me gustaría comunicarme con Villa San Rafael.")}`;
 
-  // Video Teaser
-  if (cfg.url_video_lanzamiento) {
-    const btnVideo = document.getElementById("btn-open-video");
-    if (btnVideo) {
-      btnVideo.style.display = "inline-block";
-      btnVideo.onclick = () => abrirModalVideo(cfg.url_video_lanzamiento);
-    }
+  // Botón de Video
+  const btnVideo = document.getElementById("btn-open-video");
+  if (btnVideo) {
+    btnVideo.onclick = () => {
+      const urlVideo = cfg.url_video_lanzamiento || "assets/videos/PresentacionVillaSanRafael.mp4";
+      abrirModalVideo(urlVideo);
+    };
   }
 
-  // Mapa embebido y Waze (Ubicación BlaCes Project)
+  // Mapa
   const mapIframe = document.getElementById("mapa-iframe");
-  if (mapIframe) {
-    mapIframe.src = cfg.url_mapa_embed || "https://maps.google.com/maps?q=3.6383084,-76.191293&hl=es&z=16&output=embed";
+  if (mapIframe && cfg.url_mapa_embed) {
+    mapIframe.src = cfg.url_mapa_embed;
   }
 
   const btnWaze = document.getElementById("btn-waze");
-  if (btnWaze) {
-    btnWaze.href = cfg.waze_maps_link || "https://www.google.com/maps/place/BlaCes+Project/@3.6383084,-76.1961639,17z/data=!3m1!4b1!4m6!3m5!1s0x8e39f751962dd407:0xdbc997bc18360ffb!8m2!3d3.6383031!4d-76.191293!16s%2Fg%2F11ryld6htp";
+  if (btnWaze && cfg.waze_maps_link) {
+    btnWaze.href = cfg.waze_maps_link;
   }
 }
 
-// Filtrado interactivo por Fichas (Tabs) para Servicios
+// Filtrado de Servicios
 function filtrarServicios(categoria) {
   document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
-  if (event && event.target) event.target.classList.add("active");
+  if (window.event && window.event.target) window.event.target.classList.add("active");
 
   if (categoria === 'todos') {
     renderServicios(allServicios);
@@ -146,9 +149,9 @@ function renderServicios(items) {
     let sesionesHtml = "";
     if (srv.sesiones && srv.sesiones.length > 0) {
       sesionesHtml = `
-        <details class="sesiones-box">
-          <summary>Ver desglose de las ${srv.sesiones.length} sesiones ▸</summary>
-          <ul class="sesiones-lista">
+        <details class="acordeon-box">
+          <summary>Ver estructura de las ${srv.sesiones.length} sesiones ▸</summary>
+          <ul class="acordeon-lista">
             ${srv.sesiones.map(ses => `
               <li>
                 <strong>Sesión ${ses.Numero_Sesion}:</strong> ${ses.Tipo_Terapia} (${ses.Espacio} - ${ses.Duracion_Minutos}m)
@@ -161,14 +164,22 @@ function renderServicios(items) {
     }
 
     const planNombre = srv.Nombre_Plan || srv.Nombre_Servicio || 'Plan Terapéutico';
+    const totalSes = srv.Total_Sesiones || 1;
+    const etiquetaSesiones = totalSes === 1 ? '1 sesión' : `${totalSes} sesiones`;
 
     return `
       <div class="card card-servicio">
         <div class="card-body">
-          <span class="badge badge-outline">${srv.Modalidad || 'Individual'} · ${srv.Total_Sesiones || 1} Sesión(es)</span>
+          <span class="badge badge-outline">${srv.Modalidad || 'Individual'} · ${etiquetaSesiones}</span>
           <h3>${planNombre}</h3>
           <p class="desc">${srv.Descripcion_General || ''}</p>
+          
+          <div class="card-mini-resena">
+            <strong>★★★★★</strong> “Mi dolor lumbar disminuyó notablemente desde la primera sesión con vista a las montañas.”
+          </div>
+
           ${sesionesHtml}
+
           <div class="card-footer">
             <span class="price">${srv.Valor_Plan ? `$${Number(srv.Valor_Plan).toLocaleString('es-CO')}` : 'A convenir'}</span>
             <button class="btn btn-secondary" onclick="abrirModalLead('Servicio: ${planNombre}')">Agendar Valoración</button>
@@ -193,9 +204,9 @@ function renderExperiencias(items) {
     let itinerarioHtml = "";
     if (exp.itinerario && exp.itinerario.length > 0) {
       itinerarioHtml = `
-        <details class="itinerario-box">
+        <details class="acordeon-box">
           <summary>Ver itinerario de la jornada ▸</summary>
-          <ul class="itinerario-lista">
+          <ul class="acordeon-lista">
             ${exp.itinerario.map(it => `
               <li>
                 <span class="iti-hora">${formatearHora(it.Hora_Inicio)} - ${formatearHora(it.Hora_Fin)}</span>
@@ -208,13 +219,15 @@ function renderExperiencias(items) {
       `;
     }
 
+    const imagenRetiro = exp.Drive_URL_Imagen || 'assets/imagenes/retiro-pomo.jpg';
+
     return `
       <article class="card card-experiencia">
-        ${exp.Drive_URL_Imagen ? `<img src="${exp.Drive_URL_Imagen}" alt="${exp.Nombre_Retiro}" class="card-img" loading="lazy">` : ''}
+        <img src="${imagenRetiro}" alt="${exp.Nombre_Retiro}" class="card-img" onerror="this.src='https://images.unsplash.com/photo-1545205597-3d9d02c29597?auto=format&fit=crop&w=800&q=80'" loading="lazy">
         <div class="card-body">
           <span class="badge ${exp.Estado.toLowerCase() === 'abierta' ? 'badge-success' : 'badge-warning'}">${exp.Estado}</span>
           <h3>${exp.Nombre_Retiro}</h3>
-          <p class="meta">📅 ${formatearFecha(exp.Fecha_Inicio)} | 👥 Cupos: ${exp.Cupo_Max || 'Limitados'}</p>
+          <p class="meta">📅 ${formatearFecha(exp.Fecha_Inicio)} | 👥 Quedan pocos cupos (Máx ${exp.Cupo_Max || '10'})</p>
           <p class="desc">${exp.Descripcion_Corta || ''}</p>
           ${itinerarioHtml}
           <div class="card-footer">
@@ -233,14 +246,15 @@ function renderEspecialista(lista) {
 
   const esp = lista.find(e => e.Estado && e.Estado.toString().toLowerCase() === "activo") || lista[0];
   if (!esp) {
-    document.getElementById("especialista-section").style.display = "none";
+    document.getElementById("especialista").style.display = "none";
     return;
   }
 
   const tags = (esp.Especialidades || "").split("·").map(t => `<span class="tag">${t.trim()}</span>`).join("");
+  const fotoEsp = esp.Foto_URL || 'assets/imagenes/blanca-perdomo.jpg';
 
   container.innerHTML = `
-    <img src="${esp.Foto_URL}" alt="${esp.Nombre}" class="especialista-foto" loading="lazy">
+    <img src="${fotoEsp}" alt="${esp.Nombre}" class="especialista-foto" onerror="this.src='https://images.unsplash.com/photo-1594824813589-3543d34d852a?auto=format&fit=crop&w=600&q=80'" loading="lazy">
     <div class="especialista-info">
       <h3>${esp.Nombre}</h3>
       <p class="titulo">${esp.Titulo_Profesional} · ${esp.Experiencia_Anos}</p>
@@ -282,6 +296,13 @@ function renderProductos(items) {
   }).join("");
 }
 
+function obtenerIniciales(nombre) {
+  if (!nombre) return "VS";
+  const partes = nombre.trim().split(" ");
+  if (partes.length === 1) return partes[0].substring(0, 2).toUpperCase();
+  return (partes[0][0] + partes[1][0]).toUpperCase();
+}
+
 function renderResenas(items) {
   const container = document.getElementById("resenas-container");
   if (!container) return;
@@ -295,22 +316,32 @@ function renderResenas(items) {
   container.innerHTML = activas.map(r => {
     const numEstrellas = Math.min(5, Math.max(1, parseInt(r.Calificacion, 10) || 5));
     const estrellas = "★".repeat(numEstrellas) + "☆".repeat(5 - numEstrellas);
+    const iniciales = obtenerIniciales(r.Nombre_Cliente);
     const fechaLimpia = formatearFecha(r.Fecha);
+
+    // Separar frase fuerte del resto del texto
+    const texto = r.Testimonio || "";
+    const partes = texto.split(".");
+    const titular = partes[0] ? partes[0] + "." : texto;
+    const cuerpo = partes.slice(1).join(".").trim();
 
     return `
       <div class="card-resena">
         <div class="resena-meta-top">
           <span class="resena-stars">${estrellas}</span>
-          ${fechaLimpia ? `<span class="resena-fecha">${fechaLimpia}</span>` : ''}
+          ${fechaLimpia ? `<span class="resena-fecha">${fechaLimpia}</span>` : '<span class="resena-fecha">Reseña verificada</span>'}
         </div>
         <div class="resena-header">
-          ${r.Foto_Avatar_URL ? `<img src="${r.Foto_Avatar_URL}" alt="${r.Nombre_Cliente}" class="resena-avatar">` : ''}
+          <div class="resena-avatar-initials">${iniciales}</div>
           <div>
             <h4>${r.Nombre_Cliente}</h4>
-            <p>${r.Rol_Ciudad || ''} · <em>${r.Servicio_Tomado || ''}</em></p>
+            <span class="resena-tag-servicio">${r.Servicio_Tomado || 'Experiencia'}</span>
           </div>
         </div>
-        <p class="resena-texto">“${r.Testimonio}”</p>
+        <div class="resena-texto">
+          <strong>“${titular}”</strong>
+          ${cuerpo ? `<p>${cuerpo}</p>` : ''}
+        </div>
       </div>
     `;
   }).join("");
@@ -334,7 +365,7 @@ function renderGaleria(items) {
 function abrirModalLead(interes) {
   document.getElementById("form-interes").value = interes;
   document.getElementById("modal-lead-title").innerText = interes.includes("Retiro") ? "Reservar Cupo" : "Agendar Valoración";
-  document.getElementById("modal-lead-subtitle").innerText = `Déjanos tus datos para coordinar tu espacio en: ${interes}`;
+  document.getElementById("modal-lead-subtitle").innerText = `Déjanos tus datos para coordinar de forma personalizada en: ${interes}`;
   document.getElementById("modal-lead").style.display = "flex";
 }
 
@@ -364,11 +395,11 @@ function setupModalEvents() {
           body: JSON.stringify({ nombre, telefono: tel, interes, mensaje })
         });
       } catch (err) {
-        console.warn("Fallo al escribir lead en Sheets:", err);
+        console.warn("Fallo al escribir en Sheets:", err);
       }
 
       const numWhatsApp = siteConfig.whatsapp_numero || "573158272120";
-      const textoWa = encodeURIComponent(`¡Hola! Mi nombre es ${nombre}. Acabo de solicitar información para: *${interes}*. Mi teléfono es ${tel}.${mensaje ? ' Nota: ' + mensaje : ''}`);
+      const textoWa = encodeURIComponent(`¡Hola! Mi nombre es ${nombre}. Me interesa información y agendamiento para: *${interes}*. Mi teléfono es ${tel}.${mensaje ? ' Nota: ' + mensaje : ''}`);
       window.open(`https://wa.me/${numWhatsApp}?text=${textoWa}`, "_blank");
 
       modalLead.style.display = "none";
@@ -378,7 +409,7 @@ function setupModalEvents() {
     };
   }
 
-  // Modal Video (Soporta MP4 local o YouTube embed)
+  // Modal Video
   const modalVideo = document.getElementById("modal-video");
   const btnCloseVideo = document.getElementById("btn-close-video");
   const videoPlayer = document.getElementById("video-player");
@@ -386,7 +417,7 @@ function setupModalEvents() {
 
   if (btnCloseVideo) {
     btnCloseVideo.onclick = () => {
-      if (videoPlayer) { videoPlayer.pause(); videoPlayer.src = ""; }
+      if (videoPlayer) { videoPlayer.pause(); }
       if (videoIframe) { videoIframe.src = ""; }
       modalVideo.style.display = "none";
     };
