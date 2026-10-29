@@ -30,12 +30,11 @@ async function cargarDatos() {
   } catch (error) {
     console.error("Error al cargar datos:", error);
     if (loadingEl) {
-      loadingEl.innerHTML = `<p class="text-center" style="color:#a33;">No fue posible sincronizar el contenido en este momento. Por favor contáctanos directamente por WhatsApp.</p>`;
+      loadingEl.innerHTML = `<p class="text-center" style="color:#a33; padding:1.5rem;">No fue posible sincronizar el contenido en este momento. Por favor contáctanos directamente por WhatsApp.</p>`;
     }
   }
 }
 
-// Parser de Horas Redondeadas
 function formatearHora(val) {
   if (!val) return "";
   const str = String(val).trim();
@@ -44,7 +43,6 @@ function formatearHora(val) {
     if (!isNaN(d.getTime())) {
       let h = d.getUTCHours();
       let m = d.getUTCMinutes();
-      // Redondeo de minutos a múltiplos de 15 o 30
       m = Math.round(m / 15) * 15;
       if (m === 60) { h += 1; m = 0; }
       const ampm = h >= 12 ? 'PM' : 'AM';
@@ -56,7 +54,6 @@ function formatearHora(val) {
   return str;
 }
 
-// Parser de Fechas
 function formatearFecha(val) {
   if (!val) return "";
   const str = String(val).trim();
@@ -67,6 +64,13 @@ function formatearFecha(val) {
     }
   }
   return str;
+}
+
+function obtenerIniciales(nombre) {
+  if (!nombre) return "VR";
+  const partes = nombre.trim().split(" ");
+  if (partes.length === 1) return partes[0].substring(0, 2).toUpperCase();
+  return (partes[0][0] + partes[1][0]).toUpperCase();
 }
 
 function aplicarConfiguracion(cfg) {
@@ -91,8 +95,7 @@ function aplicarConfiguracion(cfg) {
   // WhatsApp Flotante
   const btnWaFloat = document.getElementById("btn-wa-float");
   if (btnWaFloat) {
-    const defaultMsg = encodeURIComponent("¡Hola! Deseo recibir información sobre las experiencias y servicios en Villa San Rafael.");
-    btnWaFloat.href = `${baseWaUrl}${defaultMsg}`;
+    btnWaFloat.href = `${baseWaUrl}${encodeURIComponent("¡Hola! Deseo recibir información sobre las experiencias y servicios en Villa San Rafael.")}`;
   }
 
   // Footer WhatsApp
@@ -122,7 +125,6 @@ function aplicarConfiguracion(cfg) {
   }
 }
 
-// Filtrado de Servicios
 function filtrarServicios(categoria) {
   document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
   if (window.event && window.event.target) window.event.target.classList.add("active");
@@ -141,7 +143,7 @@ function renderServicios(items) {
 
   const visibles = items.filter(it => it.Estado && it.Estado.toString().toLowerCase() !== "oculto");
   if (visibles.length === 0) {
-    container.innerHTML = `<p class="text-center" style="grid-column: 1/-1; color:#777; padding: 1rem;">No hay servicios disponibles en esta categoría.</p>`;
+    container.innerHTML = `<p class="text-center" style="grid-column: 1/-1; color:#777; padding: 1.5rem;">No hay servicios en esta categoría.</p>`;
     return;
   }
 
@@ -155,7 +157,7 @@ function renderServicios(items) {
             ${srv.sesiones.map(ses => `
               <li>
                 <strong>Sesión ${ses.Numero_Sesion}:</strong> ${ses.Tipo_Terapia} (${ses.Espacio} - ${ses.Duracion_Minutos}m)
-                ${ses.Enfoque_Sesion ? `<p style="font-size:0.78rem; color:#666;">${ses.Enfoque_Sesion}</p>` : ''}
+                ${ses.Enfoque_Sesion ? `<p style="font-size:0.8rem; color:#666;">${ses.Enfoque_Sesion}</p>` : ''}
               </li>
             `).join("")}
           </ul>
@@ -175,7 +177,7 @@ function renderServicios(items) {
           <p class="desc">${srv.Descripcion_General || ''}</p>
           
           <div class="card-mini-resena">
-            <strong>★★★★★</strong> “Mi dolor lumbar disminuyó notablemente desde la primera sesión con vista a las montañas.”
+            <strong>★★★★★</strong> “Mi molestia lumbar disminuyó notablemente desde la primera sesión con vista a las montañas.”
           </div>
 
           ${sesionesHtml}
@@ -254,7 +256,9 @@ function renderEspecialista(lista) {
   const fotoEsp = esp.Foto_URL || 'assets/imagenes/blanca-perdomo.jpg';
 
   container.innerHTML = `
-    <img src="${fotoEsp}" alt="${esp.Nombre}" class="especialista-foto" onerror="this.src='https://images.unsplash.com/photo-1594824813589-3543d34d852a?auto=format&fit=crop&w=600&q=80'" loading="lazy">
+    <div class="especialista-avatar-wrapper">
+      <img src="${fotoEsp}" alt="${esp.Nombre}" class="especialista-foto" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1594824813589-3543d34d852a?auto=format&fit=crop&w=600&q=80'" loading="lazy">
+    </div>
     <div class="especialista-info">
       <h3>${esp.Nombre}</h3>
       <p class="titulo">${esp.Titulo_Profesional} · ${esp.Experiencia_Anos}</p>
@@ -270,7 +274,7 @@ function renderProductos(items) {
 
   const disponibles = items.filter(it => it.Disponibilidad && it.Disponibilidad.toString().toLowerCase() !== "oculto");
   if (disponibles.length === 0) {
-    container.innerHTML = `<p class="text-center" style="grid-column: 1/-1; color:#777;">Catálogo botánico en preparación.</p>`;
+    container.innerHTML = `<p class="text-center" style="grid-column: 1/-1; color:#777; padding:1.5rem;">Catálogo botánico en preparación.</p>`;
     return;
   }
 
@@ -278,10 +282,11 @@ function renderProductos(items) {
     const numWhatsApp = siteConfig.whatsapp_numero || "573158272120";
     const msg = encodeURIComponent(`¡Hola! Deseo pedir el producto "${prod.Nombre_Producto}" (${prod.Presentacion || ''}).`);
     const waLink = `https://wa.me/${numWhatsApp}?text=${msg}`;
+    const fotoProd = prod.URL_Imagen || 'assets/imagenes/mantequilla.jpg';
 
     return `
       <div class="card card-producto">
-        ${prod.URL_Imagen ? `<img src="${prod.URL_Imagen}" alt="${prod.Nombre_Producto}" class="card-img" loading="lazy">` : ''}
+        <img src="${fotoProd}" alt="${prod.Nombre_Producto}" class="card-img" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1608248597359-58b211d13dbb?auto=format&fit=crop&w=600&q=80'" loading="lazy">
         <div class="card-body">
           <h3>${prod.Nombre_Producto}</h3>
           <p class="desc">${prod.Beneficio_Clave || ''}</p>
@@ -294,13 +299,6 @@ function renderProductos(items) {
       </div>
     `;
   }).join("");
-}
-
-function obtenerIniciales(nombre) {
-  if (!nombre) return "VS";
-  const partes = nombre.trim().split(" ");
-  if (partes.length === 1) return partes[0].substring(0, 2).toUpperCase();
-  return (partes[0][0] + partes[1][0]).toUpperCase();
 }
 
 function renderResenas(items) {
@@ -319,7 +317,6 @@ function renderResenas(items) {
     const iniciales = obtenerIniciales(r.Nombre_Cliente);
     const fechaLimpia = formatearFecha(r.Fecha);
 
-    // Separar frase fuerte del resto del texto
     const texto = r.Testimonio || "";
     const partes = texto.split(".");
     const titular = partes[0] ? partes[0] + "." : texto;
@@ -357,15 +354,14 @@ function renderGaleria(items) {
   }
 
   container.innerHTML = items.map(m => `
-    <img src="${m.URL_Recurso}" alt="${m.Titulo || 'Villa San Rafael'}" loading="lazy">
+    <img src="${m.URL_Recurso}" alt="${m.Titulo || 'Villa San Rafael'}" onerror="this.style.display='none'" loading="lazy">
   `).join("");
 }
 
-/* Modal Lead */
 function abrirModalLead(interes) {
   document.getElementById("form-interes").value = interes;
   document.getElementById("modal-lead-title").innerText = interes.includes("Retiro") ? "Reservar Cupo" : "Agendar Valoración";
-  document.getElementById("modal-lead-subtitle").innerText = `Déjanos tus datos para coordinar de forma personalizada en: ${interes}`;
+  document.getElementById("modal-lead-subtitle").innerText = `Déjanos tus datos para coordinar en: ${interes}`;
   document.getElementById("modal-lead").style.display = "flex";
 }
 
@@ -409,7 +405,6 @@ function setupModalEvents() {
     };
   }
 
-  // Modal Video
   const modalVideo = document.getElementById("modal-video");
   const btnCloseVideo = document.getElementById("btn-close-video");
   const videoPlayer = document.getElementById("video-player");
