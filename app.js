@@ -1,6 +1,7 @@
 const API_URL = "https://script.google.com/macros/s/AKfycbzkyDhnnTBOP2-nBvkm3MqZz9mK2dMRUYNa0Wu3P2qwYO2x56hXnZwt5g7jdeaIVKH92w/exec";
 
 let siteConfig = {};
+let allServicios = [];
 
 document.addEventListener("DOMContentLoaded", () => {
   cargarDatos();
@@ -16,8 +17,10 @@ async function cargarDatos() {
     siteConfig = data.CONFIG || {};
     aplicarConfiguracion(siteConfig);
 
+    allServicios = data.SERVICIOS || [];
+    renderServicios(allServicios);
+
     renderExperiencias(data.EXPERIENCIAS || []);
-    renderServicios(data.SERVICIOS || []);
     renderEspecialista(data.ESPECIALISTAS || []);
     renderProductos(data.PRODUCTOS || []);
     renderResenas(data.RESENAS || []);
@@ -32,32 +35,32 @@ async function cargarDatos() {
   }
 }
 
-// Limpia y formatea fechas/horas de Google Sheets para evitar el timestamp ISO
+// Formateo de horas eliminando el timestamp 1899-12-30T...
 function formatearHora(val) {
   if (!val) return "";
   const str = String(val).trim();
   if (str.includes("T")) {
-    const dateObj = new Date(str);
-    if (!isNaN(dateObj.getTime())) {
-      let hours = dateObj.getUTCHours();
-      let minutes = dateObj.getUTCMinutes();
-      const ampm = hours >= 12 ? 'PM' : 'AM';
-      hours = hours % 12;
-      hours = hours ? hours : 12;
-      const minutesStr = minutes < 10 ? '0' + minutes : minutes;
-      return `${hours}:${minutesStr} ${ampm}`;
+    const d = new Date(str);
+    if (!isNaN(d.getTime())) {
+      let h = d.getUTCHours();
+      let m = d.getUTCMinutes();
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      h = h % 12;
+      h = h ? h : 12;
+      return `${h}:${m < 10 ? '0' + m : m} ${ampm}`;
     }
   }
   return str;
 }
 
+// Formateo de fechas legible
 function formatearFecha(val) {
   if (!val) return "";
   const str = String(val).trim();
   if (str.includes("T")) {
-    const dateObj = new Date(str);
-    if (!isNaN(dateObj.getTime())) {
-      return dateObj.toLocaleDateString("es-CO", { day: 'numeric', month: 'short', year: 'numeric' });
+    const d = new Date(str);
+    if (!isNaN(d.getTime())) {
+      return d.toLocaleDateString("es-CO", { day: 'numeric', month: 'short', year: 'numeric' });
     }
   }
   return str;
@@ -82,7 +85,7 @@ function aplicarConfiguracion(cfg) {
   const locEl = document.getElementById("site-location");
   if (locEl && cfg.ubicacion) locEl.innerText = `📍 ${cfg.ubicacion}`;
 
-  // Botón flotante WhatsApp
+  // WhatsApp Flotante
   const btnWaFloat = document.getElementById("btn-wa-float");
   if (btnWaFloat) {
     const defaultMsg = encodeURIComponent("¡Hola! Deseo recibir información sobre las experiencias y servicios en Villa San Rafael.");
@@ -104,12 +107,76 @@ function aplicarConfiguracion(cfg) {
     }
   }
 
-  // Mapa y Waze
+  // Mapa embebido y Waze (Ubicación BlaCes Project)
   const mapIframe = document.getElementById("mapa-iframe");
-  if (mapIframe && cfg.url_mapa_embed) mapIframe.src = cfg.url_mapa_embed;
+  if (mapIframe) {
+    mapIframe.src = cfg.url_mapa_embed || "https://maps.google.com/maps?q=3.6383084,-76.191293&hl=es&z=16&output=embed";
+  }
 
   const btnWaze = document.getElementById("btn-waze");
-  if (btnWaze && cfg.waze_maps_link) btnWaze.href = cfg.waze_maps_link;
+  if (btnWaze) {
+    btnWaze.href = cfg.waze_maps_link || "https://www.google.com/maps/place/BlaCes+Project/@3.6383084,-76.1961639,17z/data=!3m1!4b1!4m6!3m5!1s0x8e39f751962dd407:0xdbc997bc18360ffb!8m2!3d3.6383031!4d-76.191293!16s%2Fg%2F11ryld6htp";
+  }
+}
+
+// Filtrado interactivo por Fichas (Tabs) para Servicios
+function filtrarServicios(categoria) {
+  document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
+  if (event && event.target) event.target.classList.add("active");
+
+  if (categoria === 'todos') {
+    renderServicios(allServicios);
+  } else {
+    const filtrados = allServicios.filter(s => (s.Modalidad || '').toLowerCase() === categoria.toLowerCase());
+    renderServicios(filtrados);
+  }
+}
+
+function renderServicios(items) {
+  const container = document.getElementById("servicios-container");
+  if (!container) return;
+
+  const visibles = items.filter(it => it.Estado && it.Estado.toString().toLowerCase() !== "oculto");
+  if (visibles.length === 0) {
+    container.innerHTML = `<p class="text-center" style="grid-column: 1/-1; color:#777; padding: 1rem;">No hay servicios disponibles en esta categoría.</p>`;
+    return;
+  }
+
+  container.innerHTML = visibles.map(srv => {
+    let sesionesHtml = "";
+    if (srv.sesiones && srv.sesiones.length > 0) {
+      sesionesHtml = `
+        <details class="sesiones-box">
+          <summary>Ver desglose de las ${srv.sesiones.length} sesiones ▸</summary>
+          <ul class="sesiones-lista">
+            ${srv.sesiones.map(ses => `
+              <li>
+                <strong>Sesión ${ses.Numero_Sesion}:</strong> ${ses.Tipo_Terapia} (${ses.Espacio} - ${ses.Duracion_Minutos}m)
+                ${ses.Enfoque_Sesion ? `<p style="font-size:0.78rem; color:#666;">${ses.Enfoque_Sesion}</p>` : ''}
+              </li>
+            `).join("")}
+          </ul>
+        </details>
+      `;
+    }
+
+    const planNombre = srv.Nombre_Plan || srv.Nombre_Servicio || 'Plan Terapéutico';
+
+    return `
+      <div class="card card-servicio">
+        <div class="card-body">
+          <span class="badge badge-outline">${srv.Modalidad || 'Individual'} · ${srv.Total_Sesiones || 1} Sesión(es)</span>
+          <h3>${planNombre}</h3>
+          <p class="desc">${srv.Descripcion_General || ''}</p>
+          ${sesionesHtml}
+          <div class="card-footer">
+            <span class="price">${srv.Valor_Plan ? `$${Number(srv.Valor_Plan).toLocaleString('es-CO')}` : 'A convenir'}</span>
+            <button class="btn btn-secondary" onclick="abrirModalLead('Servicio: ${planNombre}')">Agendar Valoración</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join("");
 }
 
 function renderExperiencias(items) {
@@ -126,18 +193,18 @@ function renderExperiencias(items) {
     let itinerarioHtml = "";
     if (exp.itinerario && exp.itinerario.length > 0) {
       itinerarioHtml = `
-        <div class="itinerario-box">
-          <h4>Itinerario de la Jornada:</h4>
+        <details class="itinerario-box">
+          <summary>Ver itinerario de la jornada ▸</summary>
           <ul class="itinerario-lista">
             ${exp.itinerario.map(it => `
               <li>
                 <span class="iti-hora">${formatearHora(it.Hora_Inicio)} - ${formatearHora(it.Hora_Fin)}</span>
                 <strong>${it.Titulo_Jornada || ''}</strong>
-                <p>${it.Descripcion_Actividad || ''}</p>
+                <p style="font-size:0.8rem; color:#555;">${it.Descripcion_Actividad || ''}</p>
               </li>
             `).join("")}
           </ul>
-        </div>
+        </details>
       `;
     }
 
@@ -156,51 +223,6 @@ function renderExperiencias(items) {
           </div>
         </div>
       </article>
-    `;
-  }).join("");
-}
-
-function renderServicios(items) {
-  const container = document.getElementById("servicios-container");
-  if (!container) return;
-
-  const visibles = items.filter(it => it.Estado && it.Estado.toString().toLowerCase() !== "oculto");
-  if (visibles.length === 0) {
-    container.innerHTML = `<p class="text-center" style="grid-column: 1/-1; color:#777;">Servicios clínicos en actualización.</p>`;
-    return;
-  }
-
-  container.innerHTML = visibles.map(srv => {
-    let sesionesHtml = "";
-    if (srv.sesiones && srv.sesiones.length > 0) {
-      sesionesHtml = `
-        <div class="sesiones-box">
-          <h4>Estructura de las sesiones:</h4>
-          <ul class="sesiones-lista">
-            ${srv.sesiones.map(ses => `
-              <li>
-                <strong>Sesión ${ses.Numero_Sesion}:</strong> ${ses.Tipo_Terapia} (${ses.Espacio} - ${ses.Duracion_Minutos} min)
-                <p>${ses.Enfoque_Sesion || ''}</p>
-              </li>
-            `).join("")}
-          </ul>
-        </div>
-      `;
-    }
-
-    return `
-      <div class="card card-servicio">
-        <div class="card-body">
-          <span class="badge badge-outline">${srv.Modalidad || 'Individual'} · ${srv.Total_Sesiones || 1} Sesión(es)</span>
-          <h3>${srv.Nombre_Plan || 'Plan de Fisioterapia'}</h3>
-          <p class="desc">${srv.Descripcion_General || ''}</p>
-          ${sesionesHtml}
-          <div class="card-footer">
-            <span class="price">${srv.Valor_Plan ? `$${Number(srv.Valor_Plan).toLocaleString('es-CO')}` : 'A convenir'}</span>
-            <button class="btn btn-secondary" onclick="abrirModalLead('Servicio: ${srv.Nombre_Plan || 'Fisioterapia'}')">Agendar Valoración</button>
-          </div>
-        </div>
-      </div>
     `;
   }).join("");
 }
@@ -270,19 +292,28 @@ function renderResenas(items) {
     return;
   }
 
-  container.innerHTML = activas.map(r => `
-    <div class="card-resena">
-      <div class="resena-header">
-        ${r.Foto_Avatar_URL ? `<img src="${r.Foto_Avatar_URL}" alt="${r.Nombre_Cliente}" class="resena-avatar">` : ''}
-        <div>
-          <h4>${r.Nombre_Cliente}</h4>
-          <p>${r.Rol_Ciudad || ''} · <em>${r.Servicio_Tomado || ''}</em></p>
+  container.innerHTML = activas.map(r => {
+    const numEstrellas = Math.min(5, Math.max(1, parseInt(r.Calificacion, 10) || 5));
+    const estrellas = "★".repeat(numEstrellas) + "☆".repeat(5 - numEstrellas);
+    const fechaLimpia = formatearFecha(r.Fecha);
+
+    return `
+      <div class="card-resena">
+        <div class="resena-meta-top">
+          <span class="resena-stars">${estrellas}</span>
+          ${fechaLimpia ? `<span class="resena-fecha">${fechaLimpia}</span>` : ''}
         </div>
+        <div class="resena-header">
+          ${r.Foto_Avatar_URL ? `<img src="${r.Foto_Avatar_URL}" alt="${r.Nombre_Cliente}" class="resena-avatar">` : ''}
+          <div>
+            <h4>${r.Nombre_Cliente}</h4>
+            <p>${r.Rol_Ciudad || ''} · <em>${r.Servicio_Tomado || ''}</em></p>
+          </div>
+        </div>
+        <p class="resena-texto">“${r.Testimonio}”</p>
       </div>
-      <div class="resena-stars">★★★★★</div>
-      <p class="resena-texto">“${r.Testimonio}”</p>
-    </div>
-  `).join("");
+    `;
+  }).join("");
 }
 
 function renderGaleria(items) {
@@ -299,7 +330,7 @@ function renderGaleria(items) {
   `).join("");
 }
 
-/* Modal de Captura y WhatsApp Directo */
+/* Modal Lead */
 function abrirModalLead(interes) {
   document.getElementById("form-interes").value = interes;
   document.getElementById("modal-lead-title").innerText = interes.includes("Retiro") ? "Reservar Cupo" : "Agendar Valoración";
@@ -326,7 +357,6 @@ function setupModalEvents() {
       btnSubmit.disabled = true;
 
       try {
-        // Enviar a Google Sheets vía POST
         await fetch(API_URL, {
           method: "POST",
           mode: "no-cors",
@@ -334,10 +364,9 @@ function setupModalEvents() {
           body: JSON.stringify({ nombre, telefono: tel, interes, mensaje })
         });
       } catch (err) {
-        console.warn("Fallo secundario al escribir en Sheets:", err);
+        console.warn("Fallo al escribir lead en Sheets:", err);
       }
 
-      // Redirigir a WhatsApp con el mensaje enriquecido
       const numWhatsApp = siteConfig.whatsapp_numero || "573158272120";
       const textoWa = encodeURIComponent(`¡Hola! Mi nombre es ${nombre}. Acabo de solicitar información para: *${interes}*. Mi teléfono es ${tel}.${mensaje ? ' Nota: ' + mensaje : ''}`);
       window.open(`https://wa.me/${numWhatsApp}?text=${textoWa}`, "_blank");
@@ -349,12 +378,16 @@ function setupModalEvents() {
     };
   }
 
-  // Modal Video
+  // Modal Video (Soporta MP4 local o YouTube embed)
   const modalVideo = document.getElementById("modal-video");
   const btnCloseVideo = document.getElementById("btn-close-video");
+  const videoPlayer = document.getElementById("video-player");
+  const videoIframe = document.getElementById("video-iframe");
+
   if (btnCloseVideo) {
     btnCloseVideo.onclick = () => {
-      document.getElementById("video-iframe").src = "";
+      if (videoPlayer) { videoPlayer.pause(); videoPlayer.src = ""; }
+      if (videoIframe) { videoIframe.src = ""; }
       modalVideo.style.display = "none";
     };
   }
@@ -362,7 +395,19 @@ function setupModalEvents() {
 
 function abrirModalVideo(url) {
   const modalVideo = document.getElementById("modal-video");
+  const videoPlayer = document.getElementById("video-player");
   const videoIframe = document.getElementById("video-iframe");
-  videoIframe.src = url;
+
+  if (url.endsWith(".mp4") || url.includes("/assets/")) {
+    videoIframe.style.display = "none";
+    videoPlayer.style.display = "block";
+    videoPlayer.src = url;
+    videoPlayer.play();
+  } else {
+    videoPlayer.style.display = "none";
+    videoIframe.style.display = "block";
+    videoIframe.src = url;
+  }
+
   modalVideo.style.display = "flex";
 }
