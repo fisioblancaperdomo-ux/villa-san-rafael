@@ -10,7 +10,10 @@ document.addEventListener("DOMContentLoaded", () => {
 async function cargarDatos() {
   const loadingEl = document.getElementById("loading");
   try {
-    const res = await fetch(API_URL);
+    const res = await fetch(API_URL, {
+  method: "GET",
+  redirect: "follow"
+});
     const data = await res.json();
 
     siteConfig = data.CONFIG || {};
