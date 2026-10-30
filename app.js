@@ -24,17 +24,17 @@ async function cargarDatos() {
     renderEspecialista(data.ESPECIALISTAS || []);
     renderProductos(data.PRODUCTOS || []);
     renderResenas(data.RESENAS || []);
-    renderGaleria(data.GALERIA || []);
 
     if (loadingEl) loadingEl.style.display = "none";
   } catch (error) {
     console.error("Error al cargar datos:", error);
     if (loadingEl) {
-      loadingEl.innerHTML = `<p class="text-center" style="color:#a33; padding:1.5rem;">No fue posible sincronizar el contenido en este momento. Por favor contáctanos directamente por WhatsApp.</p>`;
+      loadingEl.innerHTML = `<p class="text-center" style="color:#a33; padding:1.5rem;">No fue posible sincronizar el contenido en este momento. Por favor contáctanos directamente a nuestro WhatsApp oficial.</p>`;
     }
   }
 }
 
+// Limpieza de horas para evitar timestamps ISO 1899-12-30T...
 function formatearHora(val) {
   if (!val) return "";
   const str = String(val).trim();
@@ -54,6 +54,7 @@ function formatearHora(val) {
   return str;
 }
 
+// Formateo de fechas legible (ej. 14 de nov de 2026)
 function formatearFecha(val) {
   if (!val) return "";
   const str = String(val).trim();
@@ -104,16 +105,16 @@ function aplicarConfiguracion(cfg) {
   if (footerWaNum) footerWaNum.innerText = numVisible;
   if (footerWaLink) footerWaLink.href = `${baseWaUrl}${encodeURIComponent("¡Hola! Me gustaría comunicarme con Villa San Rafael.")}`;
 
-  // Botón de Video
+  // Botón de Video Teaser
   const btnVideo = document.getElementById("btn-open-video");
   if (btnVideo) {
     btnVideo.onclick = () => {
-      const urlVideo = cfg.url_video_lanzamiento || "assets/videos/PresentacionVillaSanRafael.mp4";
+      const urlVideo = cfg.url_video_lanzamiento || "Video/PresentacionVillaSanRafael.mp4";
       abrirModalVideo(urlVideo);
     };
   }
 
-  // Mapa
+  // Mapa embebido y Waze (BlaCes Project)
   const mapIframe = document.getElementById("mapa-iframe");
   if (mapIframe && cfg.url_mapa_embed) {
     mapIframe.src = cfg.url_mapa_embed;
@@ -206,32 +207,38 @@ function renderExperiencias(items) {
     let itinerarioHtml = "";
     if (exp.itinerario && exp.itinerario.length > 0) {
       itinerarioHtml = `
-        <details class="acordeon-box">
-          <summary>Ver itinerario de la jornada ▸</summary>
-          <ul class="acordeon-lista">
+        <div class="itinerario-abierto-box">
+          <h4>Itinerario Programado de la Jornada</h4>
+          <ul class="iti-timeline">
             ${exp.itinerario.map(it => `
-              <li>
-                <span class="iti-hora">${formatearHora(it.Hora_Inicio)} - ${formatearHora(it.Hora_Fin)}</span>
-                <strong>${it.Titulo_Jornada || ''}</strong>
-                <p style="font-size:0.8rem; color:#555;">${it.Descripcion_Actividad || ''}</p>
+              <li class="iti-item">
+                <span class="iti-badge-hora">${formatearHora(it.Hora_Inicio)} - ${formatearHora(it.Hora_Fin)}</span>
+                <div class="iti-text">
+                  <strong>${it.Titulo_Jornada || ''}</strong>
+                  <p>${it.Descripcion_Actividad || ''}</p>
+                </div>
               </li>
             `).join("")}
           </ul>
-        </details>
+        </div>
       `;
     }
 
-    const imagenRetiro = exp.Drive_URL_Imagen || 'assets/imagenes/retiro-pomo.jpg';
+    const imagenRetiro = exp.Drive_URL_Imagen || 'assets/Imagenes/retiro-pomo.jpg';
 
     return `
-      <article class="card card-experiencia">
-        <img src="${imagenRetiro}" alt="${exp.Nombre_Retiro}" class="card-img" onerror="this.src='https://images.unsplash.com/photo-1545205597-3d9d02c29597?auto=format&fit=crop&w=800&q=80'" loading="lazy">
+      <article class="card-experiencia-destacada">
+        <div class="exp-foto-wrapper">
+          <img src="${imagenRetiro}" alt="${exp.Nombre_Retiro}" onerror="this.onerror=null; this.src='assets/Imagenes/hero-bg.jpg';" loading="lazy">
+        </div>
         <div class="card-body">
           <span class="badge ${exp.Estado.toLowerCase() === 'abierta' ? 'badge-success' : 'badge-warning'}">${exp.Estado}</span>
           <h3>${exp.Nombre_Retiro}</h3>
-          <p class="meta">📅 ${formatearFecha(exp.Fecha_Inicio)} | 👥 Quedan pocos cupos (Máx ${exp.Cupo_Max || '10'})</p>
+          <p class="meta">📅 <strong>${formatearFecha(exp.Fecha_Inicio)}</strong> | 👥 Quedan pocos cupos (Máx ${exp.Cupo_Max || '10'})</p>
           <p class="desc">${exp.Descripcion_Corta || ''}</p>
+          
           ${itinerarioHtml}
+
           <div class="card-footer">
             <span class="price">${exp.Valor_Total ? `$${Number(exp.Valor_Total).toLocaleString('es-CO')}` : 'Consultar'}</span>
             <button class="btn btn-primary" onclick="abrirModalLead('Retiro: ${exp.Nombre_Retiro}')">Reservar Cupo</button>
@@ -253,11 +260,11 @@ function renderEspecialista(lista) {
   }
 
   const tags = (esp.Especialidades || "").split("·").map(t => `<span class="tag">${t.trim()}</span>`).join("");
-  const fotoEsp = esp.Foto_URL || 'assets/imagenes/blanca-perdomo.jpg';
+  const fotoEsp = esp.Foto_URL || 'assets/Imagenes/blanca-perdomo.jpg';
 
   container.innerHTML = `
     <div class="especialista-avatar-wrapper">
-      <img src="${fotoEsp}" alt="${esp.Nombre}" class="especialista-foto" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1594824813589-3543d34d852a?auto=format&fit=crop&w=600&q=80'" loading="lazy">
+      <img src="${fotoEsp}" alt="${esp.Nombre}" class="especialista-foto" onerror="this.onerror=null; this.src='assets/Imagenes/hero-bg.jpg';" loading="lazy">
     </div>
     <div class="especialista-info">
       <h3>${esp.Nombre}</h3>
@@ -282,11 +289,11 @@ function renderProductos(items) {
     const numWhatsApp = siteConfig.whatsapp_numero || "573158272120";
     const msg = encodeURIComponent(`¡Hola! Deseo pedir el producto "${prod.Nombre_Producto}" (${prod.Presentacion || ''}).`);
     const waLink = `https://wa.me/${numWhatsApp}?text=${msg}`;
-    const fotoProd = prod.URL_Imagen || 'assets/imagenes/mantequilla.jpg';
+    const fotoProd = prod.URL_Imagen || 'assets/Imagenes/hero-bg.jpg';
 
     return `
       <div class="card card-producto">
-        <img src="${fotoProd}" alt="${prod.Nombre_Producto}" class="card-img" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1608248597359-58b211d13dbb?auto=format&fit=crop&w=600&q=80'" loading="lazy">
+        <img src="${fotoProd}" alt="${prod.Nombre_Producto}" class="card-img" onerror="this.onerror=null; this.src='assets/Imagenes/hero-bg.jpg';" loading="lazy">
         <div class="card-body">
           <h3>${prod.Nombre_Producto}</h3>
           <p class="desc">${prod.Beneficio_Clave || ''}</p>
@@ -344,20 +351,6 @@ function renderResenas(items) {
   }).join("");
 }
 
-function renderGaleria(items) {
-  const container = document.getElementById("galeria-container");
-  if (!container) return;
-
-  if (items.length === 0) {
-    document.getElementById("galeria").style.display = "none";
-    return;
-  }
-
-  container.innerHTML = items.map(m => `
-    <img src="${m.URL_Recurso}" alt="${m.Titulo || 'Villa San Rafael'}" onerror="this.style.display='none'" loading="lazy">
-  `).join("");
-}
-
 function abrirModalLead(interes) {
   document.getElementById("form-interes").value = interes;
   document.getElementById("modal-lead-title").innerText = interes.includes("Retiro") ? "Reservar Cupo" : "Agendar Valoración";
@@ -405,16 +398,31 @@ function setupModalEvents() {
     };
   }
 
+  // Control Robusto del Modal de Video
   const modalVideo = document.getElementById("modal-video");
   const btnCloseVideo = document.getElementById("btn-close-video");
   const videoPlayer = document.getElementById("video-player");
-  const videoIframe = document.getElementById("video-iframe");
 
   if (btnCloseVideo) {
     btnCloseVideo.onclick = () => {
-      if (videoPlayer) { videoPlayer.pause(); }
-      if (videoIframe) { videoIframe.src = ""; }
+      if (videoPlayer) {
+        videoPlayer.pause();
+        videoPlayer.currentTime = 0;
+      }
       modalVideo.style.display = "none";
+    };
+  }
+
+  // Cerrar al hacer clic en el fondo oscuro
+  if (modalVideo) {
+    modalVideo.onclick = (e) => {
+      if (e.target === modalVideo) {
+        if (videoPlayer) {
+          videoPlayer.pause();
+          videoPlayer.currentTime = 0;
+        }
+        modalVideo.style.display = "none";
+      }
     };
   }
 }
@@ -424,11 +432,11 @@ function abrirModalVideo(url) {
   const videoPlayer = document.getElementById("video-player");
   const videoIframe = document.getElementById("video-iframe");
 
-  if (url.endsWith(".mp4") || url.includes("/assets/")) {
+  if (url.endsWith(".mp4") || url.includes("Video/")) {
     videoIframe.style.display = "none";
     videoPlayer.style.display = "block";
     videoPlayer.src = url;
-    videoPlayer.play();
+    videoPlayer.play().catch(e => console.log("Autoplay bloqueado por el navegador:", e));
   } else {
     videoPlayer.style.display = "none";
     videoIframe.style.display = "block";
