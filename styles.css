@@ -1,9 +1,9 @@
 :root {
-  --primary: #344D3C;        /* Verde Bosque de la paleta */
+  --primary: #344D3C;        /* Verde Bosque */
   --primary-hover: #25382B;
   --secondary: #B96F52;      /* Terracota */
   --secondary-hover: #96563D;
-  --salvia: #A4B5A0;         /* Salvia para detalles suaves */
+  --salvia: #A4B5A0;         /* Salvia */
   --bg-marfil: #F7F3E9;      /* Marfil fondo base */
   --bg-surface: #FFFFFF;
   --text-main: #30332F;      /* Carbón */
@@ -43,7 +43,7 @@ body {
 .nav-bar {
   position: sticky;
   top: 0;
-  background: rgba(247, 243, 233, 0.95);
+  background: rgba(247, 243, 233, 0.96);
   backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--border-color);
   z-index: 1000;
@@ -90,11 +90,11 @@ body {
   position: relative;
   background: url('assets/Imagenes/hero-bg.jpg') center/cover no-repeat;
   color: #fff;
-  min-height: 60vh;
+  min-height: 58vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 4.5rem 1rem 5.5rem;
+  padding: 4.5rem 1rem 5rem;
   text-align: center;
 }
 
@@ -188,35 +188,39 @@ body {
   background: rgba(255, 255, 255, 0.3);
 }
 
-/* SECCIÓN RUTAS VISUALES (Above the fold) */
+/* SECCIÓN RUTAS VISUALES (Sin solapamientos) */
 .section-rutas {
-  margin-top: -3.5rem;
+  margin-top: -1.8rem;
   position: relative;
   z-index: 10;
-  padding: 0 0 2.5rem;
+  padding: 0 0 2.8rem;
 }
 
-.rutas-header {
-  margin-bottom: 1.3rem;
+.rutas-header-box {
+  background: var(--bg-surface);
+  display: inline-block;
+  padding: 0.85rem 2rem;
+  border-radius: 14px;
+  box-shadow: 0 4px 16px rgba(52, 77, 60, 0.08);
+  margin-bottom: 1.6rem;
+  border: 1px solid var(--border-color);
 }
 
 .sub-pill {
   display: inline-block;
-  background: var(--bg-surface);
   color: var(--secondary);
   font-weight: 700;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   text-transform: uppercase;
-  padding: 0.25rem 0.85rem;
-  border-radius: 20px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  margin-bottom: 0.35rem;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.25rem;
 }
 
-.rutas-header h2 {
+.rutas-header-box h2 {
   font-family: var(--font-serif);
   font-size: 1.8rem;
   color: var(--primary);
+  margin: 0;
 }
 
 .grid-rutas {
@@ -599,8 +603,8 @@ section:nth-child(even) {
 }
 
 .especialista-avatar-wrapper {
-  width: 180px;
-  height: 180px;
+  width: 170px;
+  height: 170px;
   border-radius: 50%;
   overflow: hidden;
   background: #eee;
@@ -612,6 +616,19 @@ section:nth-child(even) {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.especialista-avatar-initials-lg {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--primary), #1e3825);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-serif);
+  font-size: 3rem;
+  font-weight: 700;
 }
 
 .especialista-info h3 {
@@ -650,7 +667,7 @@ section:nth-child(even) {
   border: 1px solid var(--border-color);
 }
 
-/* Reseñas con Iniciales Automáticas */
+/* Reseñas */
 .card-resena {
   background: var(--bg-surface);
   border: 1px solid var(--border-color);
@@ -766,7 +783,7 @@ section:nth-child(even) {
   margin-top: 1rem;
 }
 
-/* Botón Flotante WhatsApp Elevado */
+/* Botón Flotante WhatsApp */
 .wa-float-btn {
   position: fixed;
   bottom: 45px;
@@ -922,7 +939,7 @@ footer {
   .nav-links { display: none; }
   .card-experiencia-destacada { grid-template-columns: 1fr; }
   .exp-foto-wrapper { min-height: 220px; }
-  .section-rutas { margin-top: 1rem; }
+  .section-rutas { margin-top: 0.5rem; }
   .hero-section h1 { font-size: 2.2rem; }
   .especialista-card { flex-direction: column; text-align: center; padding: 1.5rem; }
   .especialista-tags { justify-content: center; }
