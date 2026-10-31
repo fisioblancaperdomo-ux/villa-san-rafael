@@ -193,6 +193,7 @@ function renderServicios(items) {
   }).join("");
 }
 
+// Forzar la imagen real del retiro (sin playa)
 function renderExperiencias(items) {
   const container = document.getElementById("experiencias-container");
   if (!container) return;
@@ -224,7 +225,7 @@ function renderExperiencias(items) {
       `;
     }
 
-    const imagenRetiro = exp.Drive_URL_Imagen || 'assets/Imagenes/retiro-pomo.jpg';
+    const imagenRetiro = "assets/Imagenes/retiro-pomo.jpg";
 
     return `
       <article class="card-experiencia-destacada">
@@ -249,6 +250,7 @@ function renderExperiencias(items) {
   }).join("");
 }
 
+// Especialista: Si no hay retrato aún, muestra avatar elegante con iniciales BP
 function renderEspecialista(lista) {
   const container = document.getElementById("especialista-container");
   if (!container) return;
@@ -260,21 +262,21 @@ function renderEspecialista(lista) {
   }
 
   const tags = (esp.Especialidades || "").split("·").map(t => `<span class="tag">${t.trim()}</span>`).join("");
-  const fotoEsp = esp.Foto_URL || 'assets/Imagenes/blanca-perdomo.jpg';
 
   container.innerHTML = `
     <div class="especialista-avatar-wrapper">
-      <img src="${fotoEsp}" alt="${esp.Nombre}" class="especialista-foto" onerror="this.onerror=null; this.src='assets/Imagenes/hero-bg.jpg';" loading="lazy">
+      <div class="especialista-avatar-initials-lg">BP</div>
     </div>
     <div class="especialista-info">
-      <h3>${esp.Nombre}</h3>
-      <p class="titulo">${esp.Titulo_Profesional} · ${esp.Experiencia_Anos}</p>
-      <p class="bio">${esp.Biografia_Corta}</p>
+      <h3>${esp.Nombre || 'Blanca Esther Perdomo Bravo'}</h3>
+      <p class="titulo">${esp.Titulo_Profesional || 'Fisioterapeuta & Facilitadora Holística'} · ${esp.Experiencia_Anos || '+15 años de experiencia'}</p>
+      <p class="bio">${esp.Biografia_Corta || 'Especialista en rehabilitación física funcional, terapia manual y movimiento consciente en conexión con la naturaleza de El Pomo.'}</p>
       <div class="especialista-tags">${tags}</div>
     </div>
   `;
 }
 
+// Forzar la imagen local de mantequilla.jpg
 function renderProductos(items) {
   const container = document.getElementById("productos-container");
   if (!container) return;
@@ -289,7 +291,7 @@ function renderProductos(items) {
     const numWhatsApp = siteConfig.whatsapp_numero || "573158272120";
     const msg = encodeURIComponent(`¡Hola! Deseo pedir el producto "${prod.Nombre_Producto}" (${prod.Presentacion || ''}).`);
     const waLink = `https://wa.me/${numWhatsApp}?text=${msg}`;
-    const fotoProd = prod.URL_Imagen || 'assets/Imagenes/hero-bg.jpg';
+    const fotoProd = "assets/Imagenes/mantequilla.jpg";
 
     return `
       <div class="card card-producto">
@@ -312,7 +314,7 @@ function renderResenas(items) {
   const container = document.getElementById("resenas-container");
   if (!container) return;
 
-  const activas = items.filter(it => it.Estado && it.Estado.toString().toLowerCase() === "activo");
+  const activas = items.filter(it => it.Estado && it.Estado.toString().toLowerCase() !== "activo");
   if (activas.length === 0) {
     document.getElementById("testimonios").style.display = "none";
     return;
@@ -398,7 +400,6 @@ function setupModalEvents() {
     };
   }
 
-  // Control Robusto del Modal de Video
   const modalVideo = document.getElementById("modal-video");
   const btnCloseVideo = document.getElementById("btn-close-video");
   const videoPlayer = document.getElementById("video-player");
@@ -413,7 +414,6 @@ function setupModalEvents() {
     };
   }
 
-  // Cerrar al hacer clic en el fondo oscuro
   if (modalVideo) {
     modalVideo.onclick = (e) => {
       if (e.target === modalVideo) {
@@ -436,7 +436,7 @@ function abrirModalVideo(url) {
     videoIframe.style.display = "none";
     videoPlayer.style.display = "block";
     videoPlayer.src = url;
-    videoPlayer.play().catch(e => console.log("Autoplay bloqueado por el navegador:", e));
+    videoPlayer.play().catch(e => console.log("Autoplay bloqueado:", e));
   } else {
     videoPlayer.style.display = "none";
     videoIframe.style.display = "block";
