@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Villa San Rafael en El Pomo, Valle del Cauca. Fisioterapia funcional, retiros de bienestar holístico para mujeres y cosmética botánica artesanal.">
+  <meta name="description" content="Villa San Rafael en El Pomo, Valle del Cauca. Fisioterapia funcional, retiros de reconexión femenina y cosmética botánica artesanal.">
   <title>Villa San Rafael - Salud, Descanso & Reconexión</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,13 +22,14 @@
         <a href="#servicios">Fisioterapia</a>
         <a href="#especialista">Quién te Cuida</a>
         <a href="#productos">Línea Botánica</a>
-        <a href="#testimonios">Reseñas</a>
+        <a href="#galeria-momentos">Momentos</a>
+        <a href="#resenas">Reseñas</a>
         <a href="#ubicacion">Cómo Llegar</a>
       </div>
     </div>
   </nav>
 
-  <!-- Hero Emocional Inmersivo (El Pomo) -->
+  <!-- Hero Emocional con Luz Natural (Sin tonos amarillentos) -->
   <header class="hero-section">
     <div class="hero-overlay"></div>
     <div class="container hero-content">
@@ -46,10 +47,10 @@
     </div>
   </header>
 
-  <!-- SECCIÓN CLAVE: Las 3 Rutas Visuales (Sin solapamientos) -->
+  <!-- Rutas Visuales del Visitante (Above the Fold) -->
   <section id="rutas-experiencia" class="section-rutas">
     <div class="container">
-      <div class="rutas-header-box text-center">
+      <div class="rutas-header-wrapper text-center">
         <span class="sub-pill">¿Qué buscas hoy para ti?</span>
         <h2>Encuentra tu momento en la montaña</h2>
       </div>
@@ -63,7 +64,7 @@
           </div>
           <div class="ruta-body">
             <h3>Quiero regalarme un retiro</h3>
-            <p>Jornadas de un día para mujeres: sendero guiado al río, siembra de semillas, yoga suave y nutrición viva de la huerta.</p>
+            <p>Jornadas de un día para mujeres: sendero guiado al río, siembra, yoga suave y nutrición viva de la huerta.</p>
             <div class="ruta-footer">
               <span class="ruta-precio">Desde $130.000</span>
               <a href="#experiencias" class="btn btn-primary">Ver Fechas</a>
@@ -95,7 +96,7 @@
           </div>
           <div class="ruta-body">
             <h3>Quiero cosmética botánica</h3>
-            <p>Línea artesanal <em>Despertando Mi Poder</em>: mantequillas y fórmulas con plantas cosechadas en la propia finca.</p>
+            <p>Línea artesanal <em>Despertando Mi Poder</em>: mantequillas y ungüentos con plantas cosechadas en la propia finca.</p>
             <div class="ruta-footer">
               <span class="ruta-precio">Desde $25.000</span>
               <a href="#productos" class="btn btn-primary">Ver Catálogo</a>
@@ -113,7 +114,7 @@
   </div>
 
   <main>
-    <!-- 1. Retiros y Experiencias con Itinerario y Fechas Abiertas -->
+    <!-- 1. Retiros y Experiencias Femeninas -->
     <section id="experiencias">
       <div class="container">
         <div class="section-header-inline">
@@ -140,7 +141,7 @@
             <button class="tab-btn" onclick="filtrarServicios('Grupal')">Grupales</button>
           </div>
         </div>
-        <div id="servicios-container" class="grid-servicios"></div>
+        <div id="servicios-container" class="grid-servicios-editorial"></div>
       </div>
     </section>
 
@@ -151,26 +152,45 @@
       </div>
     </section>
 
-    <!-- 4. Catálogo Botánico -->
+    <!-- 4. Tienda Botánica Artesanal -->
     <section id="productos">
       <div class="container">
         <div class="section-header-inline">
           <div>
             <h2 class="section-title">Línea Botánica Artesanal</h2>
-            <p class="section-subtitle">Despertando Mi Poder — Cuidado consciente para llevar a casa</p>
+            <p class="section-subtitle">Despertando Mi Poder — Fórmulas conscientes cultivadas en El Pomo</p>
           </div>
         </div>
         <div id="productos-container" class="grid-productos"></div>
       </div>
     </section>
 
-    <!-- 5. Testimonios y Reseñas con Iniciales Estilizadas -->
-    <section id="testimonios">
+    <!-- 5. Galería de Momentos -->
+    <section id="galeria-momentos">
+      <div class="container">
+        <div class="section-header-inline">
+          <div>
+            <h2 class="section-title">Momentos que se quedan contigo</h2>
+            <p class="section-subtitle">Retazos de calma, río, huerta y vida en Villa San Rafael</p>
+          </div>
+          <div class="tabs-container" id="galeria-tabs">
+            <button class="tab-btn active" onclick="filtrarGaleria('todos')">Todos</button>
+            <button class="tab-btn" onclick="filtrarGaleria('encuentros')">Encuentros</button>
+            <button class="tab-btn" onclick="filtrarGaleria('paisajes')">Paisajes</button>
+            <button class="tab-btn" onclick="filtrarGaleria('naturaleza')">Naturaleza</button>
+          </div>
+        </div>
+        <div id="galeria-container" class="grid-galeria-mosaico"></div>
+      </div>
+    </section>
+
+    <!-- 6. Reseñas y Testimonios -->
+    <section id="resenas">
       <div class="container">
         <div class="section-header-inline">
           <div>
             <h2 class="section-title">Historias de Alivio y Reconexión</h2>
-            <p class="section-subtitle">Lo que sienten quienes nos visitan en la montaña</p>
+            <p class="section-subtitle">Experiencias de quienes han vivido el espacio en la montaña</p>
           </div>
           <div class="resenas-badge-resumen">
             <span class="stars">★★★★★</span> <strong>4.9 / 5.0</strong>
@@ -180,19 +200,19 @@
       </div>
     </section>
 
-    <!-- 6. Preguntas Frecuentes -->
+    <!-- 7. Preguntas Frecuentes -->
     <section id="faq">
       <div class="container">
         <h2 class="section-title text-center">Preguntas Frecuentes</h2>
-        <p class="section-subtitle text-center">Todo lo que necesitas saber antes de subir a El Pomo</p>
+        <p class="section-subtitle text-center">Todo lo que necesitas saber antes de tu visita</p>
         <div class="faq-accordion">
           <details class="faq-item" open>
-            <summary>¿Necesito tener experiencia previa en yoga o meditación?</summary>
-            <p>No. Todas las actividades están diseñadas desde la fisioterapia y el movimiento consciente accesible, guiadas paso a paso para adaptarse a tu condición física.</p>
+            <summary>¿Necesito experiencia previa en yoga o meditación?</summary>
+            <p>No. Las actividades parten de la fisioterapia y el movimiento suave accesible, adaptándose a tu condición particular.</p>
           </details>
           <details class="faq-item">
             <summary>¿Cómo es la carretera para llegar desde Cali o Palmira?</summary>
-            <p>La vía está pavimentada en su totalidad hasta la zona y cuenta con tramos de placa huella en muy buen estado hasta Villa San Rafael. Es 100% transitable para cualquier automóvil particular.</p>
+            <p>La vía está pavimentada en su totalidad hasta la zona y cuenta con tramos de placa huella en óptimo estado. Es 100% transitable para cualquier automóvil particular.</p>
           </details>
           <details class="faq-item">
             <summary>¿Qué debo llevar para un retiro de un día?</summary>
@@ -200,17 +220,17 @@
           </details>
           <details class="faq-item">
             <summary>¿Qué sucede si llueve el día del retiro?</summary>
-            <p>Contamos con quiosco campestre cubierto con vista panorámica protegida. La lluvia en la montaña suma serenidad y todas las actividades de relajación se disfrutan sin interrupción.</p>
+            <p>Disponemos de quiosco campestre cubierto con vista panorámica protegida. Las actividades de relajación e interior se disfrutan cómodamente bajo techo.</p>
           </details>
         </div>
       </div>
     </section>
 
-    <!-- 7. Ubicación y Mapa (BlaCes Project) -->
+    <!-- 8. Ubicación y Mapa (BlaCes Project) -->
     <section id="ubicacion">
       <div class="container">
         <h2 class="section-title text-center">¿Cómo Llegar?</h2>
-        <p class="section-subtitle text-center">Corregimiento El Pomo, a tan solo 5 minutos de la histórica Hacienda El Paraíso</p>
+        <p class="section-subtitle text-center">Corregimiento El Pomo, a 5 minutos de la Hacienda El Paraíso</p>
         <div class="map-wrapper">
           <iframe id="mapa-iframe" src="https://maps.google.com/maps?q=3.6383084,-76.191293&hl=es&z=15&output=embed" width="100%" height="340" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
           <div class="map-actions text-center">
@@ -227,45 +247,94 @@
     <span class="wa-text">¿Hablamos?</span>
   </a>
 
-  <!-- Modal Lead Contextual -->
-  <div id="modal-lead" class="modal-backdrop">
+  <!-- MODAL 1: Retiros de Reconexión -->
+  <div id="modal-retiro" class="modal-backdrop">
     <div class="modal-window">
-      <button class="modal-close" id="btn-close-modal">&times;</button>
-      <h3 id="modal-lead-title">Reservar Cupo</h3>
-      <p id="modal-lead-subtitle" class="modal-desc">Déjanos tus datos para coordinar de forma personalizada.</p>
+      <button class="modal-close" onclick="cerrarModales()">&times;</button>
+      <h3 id="modal-retiro-title">Consultar Disponibilidad</h3>
+      <p class="modal-desc" id="modal-retiro-subtitle">Coordina tu cupo para esta experiencia en El Pomo.</p>
       
-      <form id="lead-form">
-        <input type="hidden" id="form-interes">
+      <form id="form-retiro">
+        <input type="hidden" id="retiro-interes">
         <div class="form-group">
-          <label for="form-nombre">Nombre completo *</label>
-          <input type="text" id="form-nombre" required placeholder="Ej. Marcela Restrepo">
-        </div>
-        <div class="form-group">
-          <label for="form-telefono">Número de WhatsApp *</label>
-          <input type="tel" id="form-telefono" required placeholder="Ej. 310 123 4567">
+          <label for="retiro-nombre">¿Cómo te llamas? *</label>
+          <input type="text" id="retiro-nombre" required placeholder="Ej. Marcela Restrepo">
         </div>
         <div class="form-group">
-          <label for="form-mensaje">Nota o solicitud especial</label>
-          <textarea id="form-mensaje" rows="2" placeholder="¿Tienes alguna condición física o solicitud específica?"></textarea>
+          <label for="retiro-tel">Número de WhatsApp *</label>
+          <input type="tel" id="retiro-tel" required placeholder="Ej. 315 123 4567">
         </div>
-        <div class="modal-buttons">
-          <button type="submit" class="btn btn-primary btn-block" id="btn-submit-lead">Continuar a WhatsApp</button>
+        <div class="form-group">
+          <label for="retiro-cupos">¿Cuántas personas desean asistir? *</label>
+          <select id="retiro-cupos" class="form-select">
+            <option value="1 persona">1 persona</option>
+            <option value="2 personas">2 personas</option>
+            <option value="3 a 5 personas">Grupo (3 a 5 personas)</option>
+          </select>
         </div>
+        <div class="form-group">
+          <label for="retiro-mensaje">¿Quieres contarnos algo? (Opcional)</label>
+          <textarea id="retiro-mensaje" rows="2" placeholder="Pregunta, necesidad o requerimiento especial"></textarea>
+        </div>
+        <p class="form-disclaimer">Al continuar podrás revisar el mensaje antes de enviarlo por WhatsApp. Esta solicitud no constituye una reserva confirmada.</p>
+        <button type="submit" class="btn btn-primary btn-block">Consultar Disponibilidad</button>
       </form>
     </div>
   </div>
 
-  <!-- Modal Video Teaser (Ruta exacta a Video/) -->
+  <!-- MODAL 2: Fisioterapia Clínica -->
+  <div id="modal-fisio" class="modal-backdrop">
+    <div class="modal-window">
+      <button class="modal-close" onclick="cerrarModales()">&times;</button>
+      <h3 id="modal-fisio-title">Agendar Valoración Terapéutica</h3>
+      <p class="modal-desc" id="modal-fisio-subtitle">Atención clínica personalizada en la montaña.</p>
+      
+      <form id="form-fisio">
+        <input type="hidden" id="fisio-interes">
+        <div class="form-group">
+          <label for="fisio-nombre">Nombre del paciente *</label>
+          <input type="text" id="fisio-nombre" required placeholder="Ej. Claudia Morales">
+        </div>
+        <div class="form-group">
+          <label for="fisio-tel">Número de WhatsApp *</label>
+          <input type="tel" id="fisio-tel" required placeholder="Ej. 311 987 6543">
+        </div>
+        <div class="form-group">
+          <label for="fisio-horario">Preferencia de atención</label>
+          <select id="fisio-horario" class="form-select">
+            <option value="Mañana (09:00 AM - 12:00 PM)">Jornada de la mañana</option>
+            <option value="Tarde (02:00 PM - 05:00 PM)">Jornada de la tarde</option>
+            <option value="Fin de semana">Fin de semana</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="fisio-mensaje">Motivo general de consulta (Opcional)</label>
+          <textarea id="fisio-mensaje" rows="2" placeholder="Ej. Dolor lumbar, rehabilitación o descarga postural"></textarea>
+        </div>
+        <p class="form-disclaimer">La valoración inicial permite establecer el plan adecuado antes de iniciar cualquier sesión.</p>
+        <button type="submit" class="btn btn-secondary btn-block">Solicitar Valoración</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 3: Video con Poster y Controles Seguros -->
   <div id="modal-video" class="modal-backdrop">
     <div class="modal-window modal-video-window">
       <button class="modal-close" id="btn-close-video" title="Cerrar video">&times;</button>
       <div class="video-responsive">
-        <video id="video-player" controls playsinline preload="metadata" style="width:100%; height:100%; border-radius:8px; background:#000;">
+        <video id="video-player" controls playsinline preload="metadata" poster="assets/Imagenes/hero-bg.jpg">
           <source src="Video/PresentacionVillaSanRafael.mp4" type="video/mp4">
-          Tu navegador no soporta el formato de video.
+          <p>Tu navegador no permite la reproducción directa. <a href="Video/PresentacionVillaSanRafael.mp4" download>Descargar video aquí</a>.</p>
         </video>
-        <iframe id="video-iframe" src="" frameborder="0" allowfullscreen allow="autoplay" style="display:none; width:100%; height:100%;"></iframe>
       </div>
+    </div>
+  </div>
+
+  <!-- MODAL 4: Lightbox para Galería -->
+  <div id="modal-lightbox" class="modal-backdrop" onclick="cerrarLightbox()">
+    <div class="lightbox-content">
+      <img id="lightbox-img" src="" alt="Ampliación Villa San Rafael">
+      <p id="lightbox-caption" class="lightbox-caption"></p>
     </div>
   </div>
 
