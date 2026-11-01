@@ -2,10 +2,12 @@ const API_URL = "https://script.google.com/macros/s/AKfycbzkyDhnnTBOP2-nBvkm3MqZ
 
 let siteConfig = {};
 let allServicios = [];
+let allGaleria = [];
 
 document.addEventListener("DOMContentLoaded", () => {
   cargarDatos();
-  setupModalEvents();
+  setupFormEvents();
+  setupVideoModal();
 });
 
 async function cargarDatos() {
@@ -23,6 +25,16 @@ async function cargarDatos() {
     renderExperiencias(data.EXPERIENCIAS || []);
     renderEspecialista(data.ESPECIALISTAS || []);
     renderProductos(data.PRODUCTOS || []);
+    
+    // Galería enriquecida con banco local de El Pomo
+    allGaleria = (data.GALERIA && data.GALERIA.length > 0) ? data.GALERIA : [
+      { URL_Recurso: "assets/Imagenes/galeria-rio.jpg", Titulo: "Sendero y aguas vivas en El Pomo", Categoria: "naturaleza" },
+      { URL_Recurso: "assets/Imagenes/galeria-huerta.jpg", Titulo: "Cultivo y plantas medicinales", Categoria: "naturaleza" },
+      { URL_Recurso: "assets/Imagenes/galeria-almuerzo.jpg", Titulo: "Alimentación consciente de la casa", Categoria: "encuentros" },
+      { URL_Recurso: "assets/Imagenes/hero-bg.jpg", Titulo: "Vista panorámica al atardecer", Categoria: "paisajes" }
+    ];
+    renderGaleria(allGaleria);
+
     renderResenas(data.RESENAS || []);
 
     if (loadingEl) loadingEl.style.display = "none";
@@ -34,7 +46,6 @@ async function cargarDatos() {
   }
 }
 
-// Limpieza de horas para evitar timestamps ISO 1899-12-30T...
 function formatearHora(val) {
   if (!val) return "";
   const str = String(val).trim();
@@ -54,7 +65,6 @@ function formatearHora(val) {
   return str;
 }
 
-// Formateo de fechas legible (ej. 14 de nov de 2026)
 function formatearFecha(val) {
   if (!val) return "";
   const str = String(val).trim();
@@ -93,28 +103,16 @@ function aplicarConfiguracion(cfg) {
   const locEl = document.getElementById("site-location");
   if (locEl && cfg.ubicacion) locEl.innerText = `📍 ${cfg.ubicacion}`;
 
-  // WhatsApp Flotante
   const btnWaFloat = document.getElementById("btn-wa-float");
   if (btnWaFloat) {
     btnWaFloat.href = `${baseWaUrl}${encodeURIComponent("¡Hola! Deseo recibir información sobre las experiencias y servicios en Villa San Rafael.")}`;
   }
 
-  // Footer WhatsApp
   const footerWaNum = document.getElementById("footer-wa-number");
   const footerWaLink = document.getElementById("footer-wa-link");
   if (footerWaNum) footerWaNum.innerText = numVisible;
   if (footerWaLink) footerWaLink.href = `${baseWaUrl}${encodeURIComponent("¡Hola! Me gustaría comunicarme con Villa San Rafael.")}`;
 
-  // Botón de Video Teaser
-  const btnVideo = document.getElementById("btn-open-video");
-  if (btnVideo) {
-    btnVideo.onclick = () => {
-      const urlVideo = cfg.url_video_lanzamiento || "Video/PresentacionVillaSanRafael.mp4";
-      abrirModalVideo(urlVideo);
-    };
-  }
-
-  // Mapa embebido y Waze (BlaCes Project)
   const mapIframe = document.getElementById("mapa-iframe");
   if (mapIframe && cfg.url_mapa_embed) {
     mapIframe.src = cfg.url_mapa_embed;
@@ -126,74 +124,7 @@ function aplicarConfiguracion(cfg) {
   }
 }
 
-function filtrarServicios(categoria) {
-  document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
-  if (window.event && window.event.target) window.event.target.classList.add("active");
-
-  if (categoria === 'todos') {
-    renderServicios(allServicios);
-  } else {
-    const filtrados = allServicios.filter(s => (s.Modalidad || '').toLowerCase() === categoria.toLowerCase());
-    renderServicios(filtrados);
-  }
-}
-
-function renderServicios(items) {
-  const container = document.getElementById("servicios-container");
-  if (!container) return;
-
-  const visibles = items.filter(it => it.Estado && it.Estado.toString().toLowerCase() !== "oculto");
-  if (visibles.length === 0) {
-    container.innerHTML = `<p class="text-center" style="grid-column: 1/-1; color:#777; padding: 1.5rem;">No hay servicios en esta categoría.</p>`;
-    return;
-  }
-
-  container.innerHTML = visibles.map(srv => {
-    let sesionesHtml = "";
-    if (srv.sesiones && srv.sesiones.length > 0) {
-      sesionesHtml = `
-        <details class="acordeon-box">
-          <summary>Ver estructura de las ${srv.sesiones.length} sesiones ▸</summary>
-          <ul class="acordeon-lista">
-            ${srv.sesiones.map(ses => `
-              <li>
-                <strong>Sesión ${ses.Numero_Sesion}:</strong> ${ses.Tipo_Terapia} (${ses.Espacio} - ${ses.Duracion_Minutos}m)
-                ${ses.Enfoque_Sesion ? `<p style="font-size:0.8rem; color:#666;">${ses.Enfoque_Sesion}</p>` : ''}
-              </li>
-            `).join("")}
-          </ul>
-        </details>
-      `;
-    }
-
-    const planNombre = srv.Nombre_Plan || srv.Nombre_Servicio || 'Plan Terapéutico';
-    const totalSes = srv.Total_Sesiones || 1;
-    const etiquetaSesiones = totalSes === 1 ? '1 sesión' : `${totalSes} sesiones`;
-
-    return `
-      <div class="card card-servicio">
-        <div class="card-body">
-          <span class="badge badge-outline">${srv.Modalidad || 'Individual'} · ${etiquetaSesiones}</span>
-          <h3>${planNombre}</h3>
-          <p class="desc">${srv.Descripcion_General || ''}</p>
-          
-          <div class="card-mini-resena">
-            <strong>★★★★★</strong> “Mi molestia lumbar disminuyó notablemente desde la primera sesión con vista a las montañas.”
-          </div>
-
-          ${sesionesHtml}
-
-          <div class="card-footer">
-            <span class="price">${srv.Valor_Plan ? `$${Number(srv.Valor_Plan).toLocaleString('es-CO')}` : 'A convenir'}</span>
-            <button class="btn btn-secondary" onclick="abrirModalLead('Servicio: ${planNombre}')">Agendar Valoración</button>
-          </div>
-        </div>
-      </div>
-    `;
-  }).join("");
-}
-
-// Forzar la imagen real del retiro (sin playa)
+// 1. Retiros Femeninos (Itinerario abierto y sin playa de stock)
 function renderExperiencias(items) {
   const container = document.getElementById("experiencias-container");
   if (!container) return;
@@ -242,7 +173,7 @@ function renderExperiencias(items) {
 
           <div class="card-footer">
             <span class="price">${exp.Valor_Total ? `$${Number(exp.Valor_Total).toLocaleString('es-CO')}` : 'Consultar'}</span>
-            <button class="btn btn-primary" onclick="abrirModalLead('Retiro: ${exp.Nombre_Retiro}')">Reservar Cupo</button>
+            <button class="btn btn-primary" onclick="abrirModalRetiro('${exp.Nombre_Retiro}')">Consultar Cupo</button>
           </div>
         </div>
       </article>
@@ -250,7 +181,78 @@ function renderExperiencias(items) {
   }).join("");
 }
 
-// Especialista: Si no hay retrato aún, muestra avatar elegante con iniciales BP
+// 2. Fisioterapia Clínica (Diseño horizontal con foto real)
+function filtrarServicios(categoria) {
+  document.querySelectorAll("#servicios-tabs .tab-btn").forEach(btn => btn.classList.remove("active"));
+  if (window.event && window.event.target) window.event.target.classList.add("active");
+
+  if (categoria === 'todos') {
+    renderServicios(allServicios);
+  } else {
+    const filtrados = allServicios.filter(s => (s.Modalidad || '').toLowerCase() === categoria.toLowerCase());
+    renderServicios(filtrados);
+  }
+}
+
+function renderServicios(items) {
+  const container = document.getElementById("servicios-container");
+  if (!container) return;
+
+  const visibles = items.filter(it => it.Estado && it.Estado.toString().toLowerCase() !== "oculto");
+  if (visibles.length === 0) {
+    container.innerHTML = `<p class="text-center" style="grid-column: 1/-1; color:#777; padding: 1.5rem;">No hay servicios en esta categoría.</p>`;
+    return;
+  }
+
+  container.innerHTML = visibles.map(srv => {
+    let sesionesHtml = "";
+    if (srv.sesiones && srv.sesiones.length > 0) {
+      sesionesHtml = `
+        <details class="acordeon-box">
+          <summary>Ver estructura de las ${srv.sesiones.length} sesiones ▸</summary>
+          <ul class="acordeon-lista">
+            ${srv.sesiones.map(ses => `
+              <li>
+                <strong>Sesión ${ses.Numero_Sesion}:</strong> ${ses.Tipo_Terapia} (${ses.Espacio} - ${ses.Duracion_Minutos}m)
+                ${ses.Enfoque_Sesion ? `<p style="font-size:0.8rem; color:#666;">${ses.Enfoque_Sesion}</p>` : ''}
+              </li>
+            `).join("")}
+          </ul>
+        </details>
+      `;
+    }
+
+    const planNombre = srv.Nombre_Plan || srv.Nombre_Servicio || 'Plan de Fisioterapia';
+    const totalSes = srv.Total_Sesiones || 1;
+    const etiquetaSesiones = totalSes === 1 ? '1 sesión' : `${totalSes} sesiones`;
+
+    return `
+      <div class="card-servicio-horizontal">
+        <div class="servicio-img-wrapper">
+          <img src="assets/Imagenes/fisioterapia.jpg" alt="${planNombre}" onerror="this.onerror=null; this.src='assets/Imagenes/hero-bg.jpg';" loading="lazy">
+        </div>
+        <div class="card-body">
+          <span class="badge badge-outline">${srv.Modalidad || 'Individual'} · ${etiquetaSesiones}</span>
+          <h3>${planNombre}</h3>
+          <p class="desc">${srv.Descripcion_General || 'Evaluación funcional, descompresión neuromuscular y terapia manual en camilla campestre.'}</p>
+          
+          <div class="card-mini-resena">
+            <strong>★★★★★</strong> “Mi molestia lumbar disminuyó notablemente desde la primera sesión con vista a las montañas.”
+          </div>
+
+          ${sesionesHtml}
+
+          <div class="card-footer">
+            <span class="price">${srv.Valor_Plan ? `$${Number(srv.Valor_Plan).toLocaleString('es-CO')}` : 'A convenir'}</span>
+            <button class="btn btn-secondary" onclick="abrirModalFisio('${planNombre}')">Agendar Valoración</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+// 3. Especialista (Blanca Esther Perdomo)
 function renderEspecialista(lista) {
   const container = document.getElementById("especialista-container");
   if (!container) return;
@@ -262,21 +264,22 @@ function renderEspecialista(lista) {
   }
 
   const tags = (esp.Especialidades || "").split("·").map(t => `<span class="tag">${t.trim()}</span>`).join("");
+  const fotoEsp = esp.Foto_URL || 'assets/Imagenes/blanca-perdomo.jpg';
 
   container.innerHTML = `
     <div class="especialista-avatar-wrapper">
-      <div class="especialista-avatar-initials-lg">BP</div>
+      <img src="${fotoEsp}" alt="${esp.Nombre}" class="especialista-foto" onerror="this.onerror=null; this.src='assets/Imagenes/hero-bg.jpg';" loading="lazy">
     </div>
     <div class="especialista-info">
-      <h3>${esp.Nombre || 'Blanca Esther Perdomo Bravo'}</h3>
-      <p class="titulo">${esp.Titulo_Profesional || 'Fisioterapeuta & Facilitadora Holística'} · ${esp.Experiencia_Anos || '+15 años de experiencia'}</p>
-      <p class="bio">${esp.Biografia_Corta || 'Especialista en rehabilitación física funcional, terapia manual y movimiento consciente en conexión con la naturaleza de El Pomo.'}</p>
+      <h3>${esp.Nombre}</h3>
+      <p class="titulo">${esp.Titulo_Profesional} · ${esp.Experiencia_Anos}</p>
+      <p class="bio">${esp.Biografia_Corta}</p>
       <div class="especialista-tags">${tags}</div>
     </div>
   `;
 }
 
-// Forzar la imagen local de mantequilla.jpg
+// 4. Catálogo Botánico con Precios Individuales
 function renderProductos(items) {
   const container = document.getElementById("productos-container");
   if (!container) return;
@@ -289,19 +292,21 @@ function renderProductos(items) {
 
   container.innerHTML = disponibles.map(prod => {
     const numWhatsApp = siteConfig.whatsapp_numero || "573158272120";
-    const msg = encodeURIComponent(`¡Hola! Deseo pedir el producto "${prod.Nombre_Producto}" (${prod.Presentacion || ''}).`);
+    const msg = encodeURIComponent(`¡Hola! Deseo consultar disponibilidad del producto botánico "${prod.Nombre_Producto}" (${prod.Presentacion || ''}).`);
     const waLink = `https://wa.me/${numWhatsApp}?text=${msg}`;
     const fotoProd = "assets/Imagenes/mantequilla.jpg";
 
     return `
-      <div class="card card-producto">
-        <img src="${fotoProd}" alt="${prod.Nombre_Producto}" class="card-img" onerror="this.onerror=null; this.src='assets/Imagenes/hero-bg.jpg';" loading="lazy">
+      <div class="card-producto">
+        <div class="card-producto-img-box">
+          <img src="${fotoProd}" alt="${prod.Nombre_Producto}" onerror="this.onerror=null; this.src='assets/Imagenes/hero-bg.jpg';" loading="lazy">
+        </div>
         <div class="card-body">
           <h3>${prod.Nombre_Producto}</h3>
           <p class="desc">${prod.Beneficio_Clave || ''}</p>
-          <p class="meta">🧴 ${prod.Presentacion || ''}</p>
+          <p class="meta">🧴 Contenido: ${prod.Presentacion || '100g'}</p>
           <div class="card-footer">
-            <span class="price">${prod.Precio ? `$${Number(prod.Precio).toLocaleString('es-CO')}` : ''}</span>
+            <span class="price">${prod.Precio ? `$${Number(prod.Precio).toLocaleString('es-CO')}` : 'Consultar'}</span>
             <a href="${waLink}" target="_blank" rel="noopener" class="btn btn-primary">Pedir por WhatsApp</a>
           </div>
         </div>
@@ -310,13 +315,51 @@ function renderProductos(items) {
   }).join("");
 }
 
+// 5. Galería Mosaico con Lightbox
+function filtrarGaleria(categoria) {
+  document.querySelectorAll("#galeria-tabs .tab-btn").forEach(btn => btn.classList.remove("active"));
+  if (window.event && window.event.target) window.event.target.classList.add("active");
+
+  if (categoria === 'todos') {
+    renderGaleria(allGaleria);
+  } else {
+    const filtrados = allGaleria.filter(g => (g.Categoria || '').toLowerCase() === categoria.toLowerCase());
+    renderGaleria(filtrados);
+  }
+}
+
+function renderGaleria(items) {
+  const container = document.getElementById("galeria-container");
+  if (!container) return;
+
+  container.innerHTML = items.map(m => `
+    <div class="galeria-item" onclick="abrirLightbox('${m.URL_Recurso}', '${m.Titulo || 'Villa San Rafael'}')">
+      <img src="${m.URL_Recurso}" alt="${m.Titulo || ''}" loading="lazy">
+      <div class="galeria-overlay">
+        <span>${m.Titulo || 'Ver imagen'}</span>
+      </div>
+    </div>
+  `).join("");
+}
+
+function abrirLightbox(src, caption) {
+  document.getElementById("lightbox-img").src = src;
+  document.getElementById("lightbox-caption").innerText = caption;
+  document.getElementById("modal-lightbox").style.display = "flex";
+}
+
+function cerrarLightbox() {
+  document.getElementById("modal-lightbox").style.display = "none";
+}
+
+// 6. Reseñas
 function renderResenas(items) {
   const container = document.getElementById("resenas-container");
   if (!container) return;
 
-  const activas = items.filter(it => it.Estado && it.Estado.toString().toLowerCase() !== "activo");
+  const activas = items.filter(it => it.Estado && it.Estado.toString().toLowerCase() === "activo");
   if (activas.length === 0) {
-    document.getElementById("testimonios").style.display = "none";
+    document.getElementById("resenas").style.display = "none";
     return;
   }
 
@@ -353,63 +396,106 @@ function renderResenas(items) {
   }).join("");
 }
 
-function abrirModalLead(interes) {
-  document.getElementById("form-interes").value = interes;
-  document.getElementById("modal-lead-title").innerText = interes.includes("Retiro") ? "Reservar Cupo" : "Agendar Valoración";
-  document.getElementById("modal-lead-subtitle").innerText = `Déjanos tus datos para coordinar en: ${interes}`;
-  document.getElementById("modal-lead").style.display = "flex";
+// Control de Modales Adaptados
+function abrirModalRetiro(nombreRetiro) {
+  document.getElementById("retiro-interes").value = nombreRetiro;
+  document.getElementById("modal-retiro-title").innerText = `Consultar Cupo: ${nombreRetiro}`;
+  document.getElementById("modal-retiro").style.display = "flex";
 }
 
-function setupModalEvents() {
-  const modalLead = document.getElementById("modal-lead");
-  const btnClose = document.getElementById("btn-close-modal");
-  if (btnClose) btnClose.onclick = () => modalLead.style.display = "none";
+function abrirModalFisio(nombrePlan) {
+  document.getElementById("fisio-interes").value = nombrePlan;
+  document.getElementById("modal-fisio-title").innerText = `Agendar: ${nombrePlan}`;
+  document.getElementById("modal-fisio").style.display = "flex";
+}
 
-  const leadForm = document.getElementById("lead-form");
-  if (leadForm) {
-    leadForm.onsubmit = async (e) => {
+function cerrarModales() {
+  document.getElementById("modal-retiro").style.display = "none";
+  document.getElementById("modal-fisio").style.display = "none";
+  document.getElementById("modal-video").style.display = "none";
+}
+
+function setupFormEvents() {
+  // Envío Formulario Retiros
+  const formRetiro = document.getElementById("form-retiro");
+  if (formRetiro) {
+    formRetiro.onsubmit = async (e) => {
       e.preventDefault();
-      const nombre = document.getElementById("form-nombre").value;
-      const tel = document.getElementById("form-telefono").value;
-      const interes = document.getElementById("form-interes").value;
-      const mensaje = document.getElementById("form-mensaje").value;
-
-      const btnSubmit = document.getElementById("btn-submit-lead");
-      btnSubmit.innerText = "Registrando...";
-      btnSubmit.disabled = true;
+      const nombre = document.getElementById("retiro-nombre").value;
+      const tel = document.getElementById("retiro-tel").value;
+      const cupos = document.getElementById("retiro-cupos").value;
+      const interes = document.getElementById("retiro-interes").value;
+      const mensaje = document.getElementById("retiro-mensaje").value;
 
       try {
         await fetch(API_URL, {
           method: "POST",
           mode: "no-cors",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ nombre, telefono: tel, interes, mensaje })
+          body: JSON.stringify({ nombre, telefono: tel, interes: `Retiro: ${interes} (${cupos})`, mensaje })
         });
       } catch (err) {
-        console.warn("Fallo al escribir en Sheets:", err);
+        console.warn("Fallo secundario al registrar lead:", err);
       }
 
       const numWhatsApp = siteConfig.whatsapp_numero || "573158272120";
-      const textoWa = encodeURIComponent(`¡Hola! Mi nombre es ${nombre}. Me interesa información y agendamiento para: *${interes}*. Mi teléfono es ${tel}.${mensaje ? ' Nota: ' + mensaje : ''}`);
+      const textoWa = encodeURIComponent(`¡Hola! Mi nombre es ${nombre}. Deseo consultar disponibilidad para el retiro *${interes}* para *${cupos}*. Mi teléfono es ${tel}.${mensaje ? ' Nota: ' + mensaje : ''}`);
       window.open(`https://wa.me/${numWhatsApp}?text=${textoWa}`, "_blank");
 
-      modalLead.style.display = "none";
-      btnSubmit.innerText = "Continuar a WhatsApp";
-      btnSubmit.disabled = false;
-      leadForm.reset();
+      cerrarModales();
+      formRetiro.reset();
     };
   }
 
-  const modalVideo = document.getElementById("modal-video");
-  const btnCloseVideo = document.getElementById("btn-close-video");
-  const videoPlayer = document.getElementById("video-player");
+  // Envío Formulario Fisioterapia
+  const formFisio = document.getElementById("form-fisio");
+  if (formFisio) {
+    formFisio.onsubmit = async (e) => {
+      e.preventDefault();
+      const nombre = document.getElementById("fisio-nombre").value;
+      const tel = document.getElementById("fisio-tel").value;
+      const horario = document.getElementById("fisio-horario").value;
+      const interes = document.getElementById("fisio-interes").value;
+      const mensaje = document.getElementById("fisio-mensaje").value;
 
-  if (btnCloseVideo) {
-    btnCloseVideo.onclick = () => {
-      if (videoPlayer) {
-        videoPlayer.pause();
-        videoPlayer.currentTime = 0;
+      try {
+        await fetch(API_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ nombre, telefono: tel, interes: `Fisio: ${interes} (${horario})`, mensaje })
+        });
+      } catch (err) {
+        console.warn("Fallo secundario al registrar lead:", err);
       }
+
+      const numWhatsApp = siteConfig.whatsapp_numero || "573158272120";
+      const textoWa = encodeURIComponent(`¡Hola! Mi nombre es ${nombre}. Deseo agendar una valoración para *${interes}* con preferencia horaria: *${horario}*. Mi contacto es ${tel}.${mensaje ? ' Motivo: ' + mensaje : ''}`);
+      window.open(`https://wa.me/${numWhatsApp}?text=${textoWa}`, "_blank");
+
+      cerrarModales();
+      formFisio.reset();
+    };
+  }
+}
+
+function setupVideoModal() {
+  const modalVideo = document.getElementById("modal-video");
+  const btnClose = document.getElementById("btn-close-video");
+  const videoPlayer = document.getElementById("video-player");
+  const btnOpen = document.getElementById("btn-open-video");
+
+  if (btnOpen) {
+    btnOpen.onclick = () => {
+      modalVideo.style.display = "flex";
+      videoPlayer.play().catch(e => console.log("Esperando interacción del usuario"));
+    };
+  }
+
+  if (btnClose) {
+    btnClose.onclick = () => {
+      videoPlayer.pause();
+      videoPlayer.currentTime = 0;
       modalVideo.style.display = "none";
     };
   }
@@ -417,31 +503,10 @@ function setupModalEvents() {
   if (modalVideo) {
     modalVideo.onclick = (e) => {
       if (e.target === modalVideo) {
-        if (videoPlayer) {
-          videoPlayer.pause();
-          videoPlayer.currentTime = 0;
-        }
+        videoPlayer.pause();
+        videoPlayer.currentTime = 0;
         modalVideo.style.display = "none";
       }
     };
   }
-}
-
-function abrirModalVideo(url) {
-  const modalVideo = document.getElementById("modal-video");
-  const videoPlayer = document.getElementById("video-player");
-  const videoIframe = document.getElementById("video-iframe");
-
-  if (url.endsWith(".mp4") || url.includes("Video/")) {
-    videoIframe.style.display = "none";
-    videoPlayer.style.display = "block";
-    videoPlayer.src = url;
-    videoPlayer.play().catch(e => console.log("Autoplay bloqueado:", e));
-  } else {
-    videoPlayer.style.display = "none";
-    videoIframe.style.display = "block";
-    videoIframe.src = url;
-  }
-
-  modalVideo.style.display = "flex";
 }
