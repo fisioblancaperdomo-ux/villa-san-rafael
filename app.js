@@ -16,6 +16,10 @@ async function cargarDatos() {
     const res = await fetch(API_URL, { method: "GET", redirect: "follow" });
     const data = await res.json();
 
+    if (data.error) {
+      throw new Error(data.mensaje || "Error en payload de API");
+    }
+
     siteConfig = data.CONFIG || {};
     aplicarConfiguracion(siteConfig);
 
@@ -26,7 +30,7 @@ async function cargarDatos() {
     renderEspecialista(data.ESPECIALISTAS || []);
     renderProductos(data.PRODUCTOS || []);
     
-    // Galería enriquecida con banco local de El Pomo
+    // Galería con fallback local controlado
     allGaleria = (data.GALERIA && data.GALERIA.length > 0) ? data.GALERIA : [
       { URL_Recurso: "assets/Imagenes/galeria-rio.jpg", Titulo: "Sendero y aguas vivas en El Pomo", Categoria: "naturaleza" },
       { URL_Recurso: "assets/Imagenes/galeria-huerta.jpg", Titulo: "Cultivo y plantas medicinales", Categoria: "naturaleza" },
@@ -39,9 +43,9 @@ async function cargarDatos() {
 
     if (loadingEl) loadingEl.style.display = "none";
   } catch (error) {
-    console.error("Error al cargar datos:", error);
+    console.error("Fallo al sincronizar datos:", error);
     if (loadingEl) {
-      loadingEl.innerHTML = `<p class="text-center" style="color:#a33; padding:1.5rem;">No fue posible sincronizar el contenido en este momento. Por favor contáctanos directamente a nuestro WhatsApp oficial.</p>`;
+      loadingEl.innerHTML = `<p class="text-center" style="color:#777; padding:1.5rem;">Atención en línea disponible directamente a través de nuestro WhatsApp oficial.</p>`;
     }
   }
 }
@@ -124,7 +128,7 @@ function aplicarConfiguracion(cfg) {
   }
 }
 
-// 1. Retiros Femeninos (Itinerario abierto y sin playa de stock)
+// 1. Retiros Femeninos (Consume exp.Drive_URL_Imagen de la API)
 function renderExperiencias(items) {
   const container = document.getElementById("experiencias-container");
   if (!container) return;
@@ -156,7 +160,8 @@ function renderExperiencias(items) {
       `;
     }
 
-    const imagenRetiro = "assets/Imagenes/retiro-pomo.jpg";
+    // Prioriza imagen de Sheets / API, con fallback local
+    const imagenRetiro = exp.Drive_URL_Imagen || "assets/Imagenes/retiro-pomo.jpg";
 
     return `
       <article class="card-experiencia-destacada">
@@ -181,7 +186,7 @@ function renderExperiencias(items) {
   }).join("");
 }
 
-// 2. Fisioterapia Clínica (Diseño horizontal con foto real)
+// 2. Fisioterapia Clínica (Sesiones anidadas mediante ID_Plan)
 function filtrarServicios(categoria) {
   document.querySelectorAll("#servicios-tabs .tab-btn").forEach(btn => btn.classList.remove("active"));
   if (window.event && window.event.target) window.event.target.classList.add("active");
@@ -223,7 +228,7 @@ function renderServicios(items) {
     }
 
     const planNombre = srv.Nombre_Plan || srv.Nombre_Servicio || 'Plan de Fisioterapia';
-    const totalSes = srv.Total_Sesiones || 1;
+    const totalSes = srv.Total_Sesiones || (srv.sesiones ? srv.sesiones.length : 1);
     const etiquetaSesiones = totalSes === 1 ? '1 sesión' : `${totalSes} sesiones`;
 
     return `
@@ -279,7 +284,7 @@ function renderEspecialista(lista) {
   `;
 }
 
-// 4. Catálogo Botánico con Precios Individuales
+// 4. Catálogo Botánico (Consume prod.URL_Imagen de la API)
 function renderProductos(items) {
   const container = document.getElementById("productos-container");
   if (!container) return;
@@ -294,7 +299,7 @@ function renderProductos(items) {
     const numWhatsApp = siteConfig.whatsapp_numero || "573158272120";
     const msg = encodeURIComponent(`¡Hola! Deseo consultar disponibilidad del producto botánico "${prod.Nombre_Producto}" (${prod.Presentacion || ''}).`);
     const waLink = `https://wa.me/${numWhatsApp}?text=${msg}`;
-    const fotoProd = "assets/Imagenes/mantequilla.jpg";
+    const fotoProd = prod.URL_Imagen || "assets/Imagenes/mantequilla.jpg";
 
     return `
       <div class="card-producto">
@@ -416,7 +421,6 @@ function cerrarModales() {
 }
 
 function setupFormEvents() {
-  // Envío Formulario Retiros
   const formRetiro = document.getElementById("form-retiro");
   if (formRetiro) {
     formRetiro.onsubmit = async (e) => {
@@ -447,7 +451,6 @@ function setupFormEvents() {
     };
   }
 
-  // Envío Formulario Fisioterapia
   const formFisio = document.getElementById("form-fisio");
   if (formFisio) {
     formFisio.onsubmit = async (e) => {
@@ -488,7 +491,7 @@ function setupVideoModal() {
   if (btnOpen) {
     btnOpen.onclick = () => {
       modalVideo.style.display = "flex";
-      videoPlayer.play().catch(e => console.log("Esperando interacción del usuario"));
+      videoPlayer.play().catch(e => console.log("Interacción requerida para reproducción"));
     };
   }
 
